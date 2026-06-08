@@ -74,14 +74,28 @@ export function Round3Shadow({
     followUpResponses: string[];
     closingResponse: string;
   }>>([]);
+  const askedIndicesRef = useRef<Set<number>>(new Set());
+  const [situationCOpeningPhase, setSituationCOpeningPhase] = useState(0);
+  const [closingVariant, setClosingVariant] = useState<'shen' | 'xu'>(
+    Math.random() > 0.5 ? 'shen' : 'xu'
+  );
 
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
   const onShadowDiscussionsRef = useRef(onShadowDiscussions);
   onShadowDiscussionsRef.current = onShadowDiscussions;
+  const doneRef = useRef(false);
+  const allDiscussionsRef = useRef<Array<{
+    shadowType: ShadowType;
+    situation: 'A' | 'B' | 'C' | 'D';
+    openingResponse: string;
+    followUpResponses: string[];
+    closingResponse: string;
+  }>>([]);
 
   useEffect(() => {
-    if (step === 'done') {
+    if (step === 'done' && !doneRef.current) {
+      doneRef.current = true;
       // Finalize and send discussion data
       const rec = selectedRecord || records[currentRecordIndex];
       const currentSituation = rec ? selectShadowSituation(rec) : 'D';
@@ -92,12 +106,13 @@ export function Round3Shadow({
         followUpResponses: userResponses.slice(1, -1),
         closingResponse: userResponses[userResponses.length - 1] || '',
       };
-      const updatedDiscussions = [...allDiscussions, finalDiscussion];
+      const updatedDiscussions = [...allDiscussionsRef.current, finalDiscussion];
+      allDiscussionsRef.current = updatedDiscussions;
       setAllDiscussions(updatedDiscussions);
       onShadowDiscussionsRef.current(updatedDiscussions);
       setTimeout(() => onCompleteRef.current(), 2000);
     }
-  }, [step, selectedRecord, records, currentRecordIndex, userResponses, allDiscussions]);
+  }, [step, selectedRecord, records, currentRecordIndex, userResponses]);
 
   // No records - show situation D (skip)
   if (records.length === 0) {
@@ -140,6 +155,8 @@ export function Round3Shadow({
               <button
                 key={index}
                 onClick={() => {
+                  doneRef.current = false;
+                  askedIndicesRef.current = new Set();
                   setSelectedRecord(record);
                   setStep('opening');
                   setCurrentRecordIndex(index);
@@ -197,6 +214,8 @@ export function Round3Shadow({
   // Situation A - triggered (+1)
   if (situation === 'A' || currentRecord.selfRating === '+1') {
     if (step === 'situation') {
+      askedIndicesRef.current = new Set();
+      doneRef.current = false;
       setTeacher('shen');
       setCurrentText(`今天记下了${SHADOW_NAMES[currentRecord.shadowType]}的事——跟我说说，当时心里在想什么？`);
       setStep('opening');
@@ -209,9 +228,16 @@ export function Round3Shadow({
     }
 
     if (step === 'followup' && followUpCount < 2) {
-      // Show random follow-up
-      const questions = FOLLOW_UP_QUESTIONS.A;
-      const q = questions[Math.floor(Math.random() * questions.length)];
+      // Show random follow-up (no repeats)
+      const allQuestions = FOLLOW_UP_QUESTIONS.A;
+      const available = allQuestions
+        .map((q, i) => ({ q, i }))
+        .filter(({ i }) => !askedIndicesRef.current.has(i));
+      const pick = available.length > 0
+        ? available[Math.floor(Math.random() * available.length)]
+        : { q: allQuestions[Math.floor(Math.random() * allQuestions.length)], i: -1 };
+      if (pick.i >= 0) askedIndicesRef.current.add(pick.i);
+      const q = pick.q;
       return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center p-8">
           <div className="text-center space-y-6 max-w-lg w-full">
@@ -270,6 +296,9 @@ export function Round3Shadow({
   // Situation B - held firm (-1)
   if (situation === 'B' || currentRecord.selfRating === '-1') {
     if (step === 'situation') {
+      askedIndicesRef.current = new Set();
+      doneRef.current = false;
+      setClosingVariant(Math.random() > 0.5 ? 'shen' : 'xu');
       setTeacher('xu');
       setCurrentText(`今天挡住了${SHADOW_NAMES[currentRecord.shadowType]}的一击——跟我说说，怎么做到的？`);
       setStep('opening');
@@ -277,8 +306,15 @@ export function Round3Shadow({
     }
 
     if (step === 'followup' && followUpCount < 2) {
-      const questions = FOLLOW_UP_QUESTIONS.B;
-      const q = questions[Math.floor(Math.random() * questions.length)];
+      const allQuestions = FOLLOW_UP_QUESTIONS.B;
+      const available = allQuestions
+        .map((q, i) => ({ q, i }))
+        .filter(({ i }) => !askedIndicesRef.current.has(i));
+      const pick = available.length > 0
+        ? available[Math.floor(Math.random() * available.length)]
+        : { q: allQuestions[Math.floor(Math.random() * allQuestions.length)], i: -1 };
+      if (pick.i >= 0) askedIndicesRef.current.add(pick.i);
+      const q = pick.q;
       return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center p-8">
           <div className="text-center space-y-6 max-w-lg w-full">
@@ -293,14 +329,22 @@ export function Round3Shadow({
                 setFollowUpCount(followUpCount + 1);
                 if (followUpCount + 1 >= 2) {
                   setStep('closing');
-                  setCurrentText('能守住一次，就能守住第二次。记住今日的感觉。');
+                  setCurrentText(
+                    closingVariant === 'shen'
+                      ? '能守住一次，就能守住第二次。记住今日的感觉。'
+                      : '下次它再来，你觉得你还能守住吗？'
+                  );
                 }
               }}
               onSkip={() => {
                 setFollowUpCount(followUpCount + 1);
                 if (followUpCount + 1 >= 2) {
                   setStep('closing');
-                  setCurrentText('能守住一次，就能守住第二次。记住今日的感觉。');
+                  setCurrentText(
+                    closingVariant === 'shen'
+                      ? '能守住一次，就能守住第二次。记住今日的感觉。'
+                      : '下次它再来，你觉得你还能守住吗？'
+                  );
                 }
               }}
             />
@@ -313,6 +357,31 @@ export function Round3Shadow({
     }
 
     if (step === 'closing') {
+      if (closingVariant === 'xu') {
+        return (
+          <div className="min-h-[60vh] flex flex-col items-center justify-center p-8">
+            <div className="text-center space-y-6 max-w-lg w-full">
+              <div className="text-5xl">👩‍🏫</div>
+              <div className="text-amber-400 font-medium">徐娘子</div>
+              <div className="p-6 bg-stone-900/80 border border-stone-800 rounded-xl">
+                <p className="text-lg text-stone-200 leading-relaxed">{currentText}</p>
+              </div>
+              <FollowUpInput
+                onSubmit={() => {
+                  setStep('done');
+                  onShadowDamage(currentRecord.shadowType, -1);
+                  onWangdeChange(1);
+                }}
+                onSkip={() => {
+                  setStep('done');
+                  onShadowDamage(currentRecord.shadowType, -1);
+                  onWangdeChange(1);
+                }}
+              />
+            </div>
+          </div>
+        );
+      }
       return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center p-8">
           <div className="text-center space-y-6 max-w-lg w-full">
@@ -340,15 +409,34 @@ export function Round3Shadow({
   // Situation C - breakthrough
   if (situation === 'C' || currentRecord.selfRating === 'breakthrough') {
     if (step === 'situation') {
+      askedIndicesRef.current = new Set();
+      doneRef.current = false;
+      setSituationCOpeningPhase(0);
       setTeacher('xu');
       setCurrentText('恭喜你。但是——');
       setStep('opening');
-      return renderCurrentStep();
+      return renderSituationCOpening(0);
+    }
+
+    if (step === 'opening') {
+      if (situationCOpeningPhase === 0) {
+        // Phase 0: 徐娘子's half-sentence, then auto-advance to 申先生
+        return renderSituationCOpening(0);
+      }
+      // Phase 1: 申先生 completes the thought, collect user response
+      return renderSituationCOpening(1);
     }
 
     if (step === 'followup' && followUpCount < 2) {
-      const questions = FOLLOW_UP_QUESTIONS.C;
-      const q = questions[Math.floor(Math.random() * questions.length)];
+      const allQuestions = FOLLOW_UP_QUESTIONS.C;
+      const available = allQuestions
+        .map((q, i) => ({ q, i }))
+        .filter(({ i }) => !askedIndicesRef.current.has(i));
+      const pick = available.length > 0
+        ? available[Math.floor(Math.random() * available.length)]
+        : { q: allQuestions[Math.floor(Math.random() * allQuestions.length)], i: -1 };
+      if (pick.i >= 0) askedIndicesRef.current.add(pick.i);
+      const q = pick.q;
       return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center p-8">
           <div className="text-center space-y-6 max-w-lg w-full">
@@ -361,9 +449,15 @@ export function Round3Shadow({
               onSubmit={(answer) => {
                 setUserResponses([...userResponses, answer]);
                 setFollowUpCount(followUpCount + 1);
+                if (followUpCount + 1 >= 2) {
+                  setStep('closing');
+                }
               }}
               onSkip={() => {
                 setFollowUpCount(followUpCount + 1);
+                if (followUpCount + 1 >= 2) {
+                  setStep('closing');
+                }
               }}
             />
             <button onClick={onExitEarly} className="text-stone-500 hover:text-stone-400 text-sm">
@@ -405,6 +499,57 @@ export function Round3Shadow({
   }
 
   return renderCurrentStep();
+
+  function renderSituationCOpening(phase: number) {
+    if (phase === 0) {
+      return (
+        <div className="min-h-[60vh] flex flex-col items-center justify-center p-8">
+          <div className="text-center space-y-6 max-w-lg w-full">
+            <div className="text-5xl">👩‍🏫</div>
+            <div className="text-amber-400 font-medium">徐娘子</div>
+            <div className="p-6 bg-stone-900/80 border border-stone-800 rounded-xl">
+              <p className="text-lg text-stone-200 leading-relaxed">恭喜你。但是——</p>
+            </div>
+            <button
+              onClick={() => {
+                setSituationCOpeningPhase(1);
+                setTeacher('shen');
+                setCurrentText('——你觉得它真的离开了吗？');
+              }}
+              className="mt-4 px-8 py-3 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-600/30 rounded-lg text-amber-400 transition-all"
+            >
+              继续 →
+            </button>
+          </div>
+        </div>
+      );
+    }
+    // Phase 1: 申先生 completes the thought
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8">
+        <div className="text-center space-y-6 max-w-lg w-full">
+          <div className="text-5xl">👨‍🏫</div>
+          <div className="text-amber-400 font-medium">申先生</div>
+          <div className="p-6 bg-stone-900/80 border border-stone-800 rounded-xl">
+            <p className="text-lg text-stone-200 leading-relaxed">——你觉得它真的离开了吗？</p>
+          </div>
+          <FollowUpInput
+            onSubmit={(answer) => {
+              setUserResponses([answer]);
+              setStep('followup');
+            }}
+            onSkip={() => {
+              setUserResponses(['（沉默）']);
+              setStep('closing');
+            }}
+          />
+          <button onClick={onExitEarly} className="text-stone-500 hover:text-stone-400 text-sm">
+            今晚就到这吧
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   function renderCurrentStep() {
     return (

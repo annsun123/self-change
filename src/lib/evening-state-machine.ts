@@ -27,7 +27,8 @@ export function canTransition(
     opening_choice: ['round_0_candlelight', 'settlement'], // full or quick
     round_0_candlelight: ['round_1_flag'],
     round_1_flag: ['round_2_lessons', 'round_3_shadow', 'round_4_infiltration', 'round_5_winddown', 'settlement'],
-    round_2_lessons: ['round_3_shadow', 'round_4_infiltration', 'round_5_winddown', 'settlement'],
+    round_2_lessons: ['round_behavior_journal', 'round_3_shadow', 'round_4_infiltration', 'round_5_winddown', 'settlement'],
+    round_behavior_journal: ['round_3_shadow', 'round_4_infiltration', 'round_5_winddown', 'settlement'],
     round_3_shadow: ['round_4_infiltration', 'round_5_winddown', 'settlement'],
     round_4_infiltration: ['round_5_winddown', 'settlement'],
     round_5_winddown: ['settlement'],
@@ -136,11 +137,11 @@ export function getFlagStatusForRound1(
     };
   }
 
-  // If goal was marked NOT completed
+  // If goal was marked NOT completed — 申先生柔和接过
   if (flagStatus === false) {
     return {
       autoResponse: true,
-      autoResponseText: '立旗容易守旗难。说说看，是什么绊住了你？',
+      autoResponseText: '今日的旗没守住。——想说说原因，还是放着明日再说？',
       shouldSkipToRound2: false,
     };
   }

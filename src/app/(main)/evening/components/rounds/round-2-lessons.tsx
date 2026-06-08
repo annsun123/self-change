@@ -10,6 +10,7 @@ interface Round2LessonsProps {
   onComplete: () => void;
   onExitEarly: () => void;
   onLessonFeedback: (feedback: Record<string, string>) => void;
+  onLessonQuality: (qualities: Record<string, { quality: number; reflection: string; status: 'done' | 'missed' }>) => void;
 }
 
 const LESSON_QUESTIONS: Record<string, { teacher: 'shen' | 'xu'; question: (task: ScheduleTask) => string; followUp?: (userAnswer: string, teacher: 'shen' | 'xu') => string }> = {
@@ -26,6 +27,16 @@ const LESSON_QUESTIONS: Record<string, { teacher: 'shen' | 'xu'; question: (task
   service: {
     teacher: 'shen',
     question: (task) => `下午的劳作${task.content ? `「${task.content}」` : ''}，做到后来还顺手吗？`,
+    followUp: (userAnswer: string) => {
+      const lower = userAnswer.toLowerCase();
+      if (lower.includes('顺') || lower.includes('好') || lower.includes('不错') || lower.includes('顺利') || lower.includes('完成')) {
+        return '好。手上有活，心里就不乱。';
+      }
+      if (lower.includes('卡') || lower.includes('难') || lower.includes('不顺') || lower.includes('没做') || lower.includes('没完')) {
+        return '不顺也好。手上不顺，至少手上在动。——明日再试。';
+      }
+      return '知道了。日日动一动，身体才不会背叛你。';
+    },
   },
   meditation: {
     teacher: 'xu',
@@ -38,36 +49,46 @@ const LESSON_QUESTIONS: Record<string, { teacher: 'shen' | 'xu'; question: (task
   },
 };
 
-export function Round2Lessons({ context, state, onComplete, onExitEarly, onLessonFeedback }: Round2LessonsProps) {
-  const tasks = context.todaySchedule?.tasks || [];
+type Step = 'question' | 'followup' | 'quality' | 'done';
+
+export function Round2Lessons({ context, state, onComplete, onExitEarly, onLessonFeedback, onLessonQuality }: Round2LessonsProps) {
+  const tasks = (context.todaySchedule?.tasks || []).filter((t) => t.completed);
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
-  const [step, setStep] = useState<'question' | 'followup' | 'done'>(
-    tasks.length === 0 ? 'done' : 'question'
-  );
+  const [step, setStep] = useState<Step>(tasks.length === 0 ? 'done' : 'question');
   const [currentText, setCurrentText] = useState('');
   const [inputValue, setInputValue] = useState('');
   const [showFollowUp, setShowFollowUp] = useState(false);
   const [allFeedback, setAllFeedback] = useState<Record<string, string>>({});
+  const [allQualities, setAllQualities] = useState<Record<string, { quality: number; reflection: string; status: 'done' | 'missed' }>>({});
+  const [qualityValue, setQualityValue] = useState<number>(0);
 
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
   const onLessonFeedbackRef = useRef(onLessonFeedback);
   onLessonFeedbackRef.current = onLessonFeedback;
+  const onLessonQualityRef = useRef(onLessonQuality);
+  onLessonQualityRef.current = onLessonQuality;
 
   useEffect(() => {
     if (step === 'done') {
       onLessonFeedbackRef.current(allFeedback);
+      onLessonQualityRef.current(allQualities);
       setTimeout(() => onCompleteRef.current(), 1500);
     }
-  }, [step, allFeedback]);
+  }, [step, allFeedback, allQualities]);
 
   if (tasks.length === 0) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-8">
         <div className="text-center space-y-4">
           <div className="text-4xl">📋</div>
-          <p className="text-stone-500">今日未安排功课。</p>
-          <p className="text-stone-400 text-sm">跳到下一轮。</p>
+          <p className="text-stone-500">今日无可回顾的功课。</p>
+          <button
+            onClick={onComplete}
+            className="mt-4 px-8 py-3 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-600/30 rounded-lg text-amber-400 transition-all"
+          >
+            继续 →
+          </button>
         </div>
       </div>
     );
@@ -82,13 +103,13 @@ export function Round2Lessons({ context, state, onComplete, onExitEarly, onLesso
       setAllFeedback((prev) => ({ ...prev, [currentTask.type]: answer }));
     }
 
+    setInputValue(answer);
+
     if (!answer.trim() || answer === '不知道') {
-      // Short response, move on without follow-up
-      moveToNextTask();
+      // Short response, skip follow-up, go to quality
+      setStep('quality');
       return;
     }
-
-    setInputValue(answer);
 
     // Check if there's a follow-up
     if (config?.followUp) {
@@ -96,8 +117,31 @@ export function Round2Lessons({ context, state, onComplete, onExitEarly, onLesso
       setCurrentText(config.followUp(answer, config.teacher));
       setStep('followup');
     } else {
-      moveToNextTask();
+      setStep('quality');
     }
+  };
+
+  const handleQualitySubmit = () => {
+    if (currentTask && qualityValue > 0) {
+      setAllQualities((prev) => ({
+        ...prev,
+        [currentTask.type]: {
+          quality: qualityValue,
+          reflection: inputValue || '',
+          status: 'done' as const,
+        },
+      }));
+    } else if (currentTask) {
+      setAllQualities((prev) => ({
+        ...prev,
+        [currentTask.type]: {
+          quality: 0,
+          reflection: inputValue || '',
+          status: 'done' as const,
+        },
+      }));
+    }
+    moveToNextTask();
   };
 
   const moveToNextTask = () => {
@@ -107,14 +151,15 @@ export function Round2Lessons({ context, state, onComplete, onExitEarly, onLesso
       setCurrentText('');
       setInputValue('');
       setShowFollowUp(false);
+      setQualityValue(0);
     } else {
       setStep('done');
     }
   };
 
   const handleContinue = () => {
-    if (showFollowUp) {
-      moveToNextTask();
+    if (step === 'followup') {
+      setStep('quality');
     } else {
       handleAnswer(inputValue);
     }
@@ -136,6 +181,62 @@ export function Round2Lessons({ context, state, onComplete, onExitEarly, onLesso
     );
   }
 
+  // Quality scoring step
+  if (step === 'quality') {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8">
+        <div className="text-center space-y-6 max-w-lg w-full">
+          <div className="text-sm text-stone-500">
+            {currentTaskIndex + 1} / {tasks.length}
+          </div>
+
+          <p className="text-stone-300 text-sm">
+            给自己的完成度打分：
+          </p>
+
+          <div className="flex gap-2 justify-center">
+            {[1, 2, 3, 4, 5].map((q) => (
+              <button
+                key={q}
+                type="button"
+                onClick={() => setQualityValue(q === qualityValue ? 0 : q)}
+                className={`w-14 h-14 rounded-lg border text-center transition-all text-lg ${
+                  qualityValue >= q
+                    ? 'border-amber-500 bg-amber-900/30 text-amber-300'
+                    : 'border-stone-700 bg-stone-800/50 text-stone-500 hover:border-stone-600'
+                }`}
+              >
+                {qualityValue >= q ? '●' : '○'}
+              </button>
+            ))}
+          </div>
+          <p className="text-stone-500 text-xs">
+            {qualityValue === 0 ? '轻触打分' :
+             qualityValue <= 2 ? '诚实就是进步' :
+             qualityValue <= 3 ? '还行，还有空间' :
+             qualityValue <= 4 ? '做得不错' :
+             '今天很扎实'}
+          </p>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={() => moveToNextTask()}
+              className="flex-1 py-2 text-stone-500 hover:text-stone-400 border border-stone-700 rounded-lg transition-all text-sm"
+            >
+              跳过
+            </button>
+            <button
+              onClick={handleQualitySubmit}
+              className="flex-1 py-2 bg-amber-600 hover:bg-amber-500 rounded-lg text-stone-100 font-medium transition-all text-sm"
+            >
+              确认 →
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center p-8">
       <div className="text-center space-y-6 max-w-lg w-full">
@@ -151,6 +252,16 @@ export function Round2Lessons({ context, state, onComplete, onExitEarly, onLesso
         <div className="text-stone-500 text-sm">
           {currentTaskIndex + 1} / {tasks.length}
         </div>
+
+        {/* Morning meditation content reminder */}
+        {currentTask?.type === 'meditation' && currentTask?.content && (
+          <div className="p-4 bg-amber-900/10 border border-amber-800/20 rounded-lg">
+            <p className="text-amber-500/60 text-xs mb-2">📜 晨间所记</p>
+            <p className="text-amber-300/80 text-sm leading-relaxed whitespace-pre-wrap italic">
+              「{currentTask.content}」
+            </p>
+          </div>
+        )}
 
         {/* Question */}
         <div className="p-6 bg-stone-900/80 border border-stone-800 rounded-xl">

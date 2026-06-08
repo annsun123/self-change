@@ -12,9 +12,17 @@ export function TeacherOpening({ context, onChoice }: TeacherOpeningProps) {
   const tone = calculateOpeningTone(context);
   const opening = getOpeningContent(tone);
 
+  const sceneDescription = tone === 'positive'
+    ? '烛火暖黄。先生抬眼看向你，目光中是难得的温和。'
+    : tone === 'negative'
+    ? '烛火昏暗。茅屋里很静，只有风声。先生等了一会儿才开口。'
+    : '烛火摇曳中，先生抬眼看向你。';
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8">
       <div className="text-center space-y-8 max-w-lg w-full">
+        {/* Scene description */}
+        <p className="text-stone-500 text-sm italic">{sceneDescription}</p>
         {/* Teacher avatar */}
         <div className="space-y-2">
           <div className="text-6xl mb-4">{opening.teacher === 'shen' ? '👨‍🏫' : '👩‍🏫'}</div>

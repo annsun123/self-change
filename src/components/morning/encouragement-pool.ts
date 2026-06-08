@@ -79,11 +79,11 @@ export function getPeriodOfDay(time: string): string {
 
   const hour = parseInt(time.split(':')[0], 10);
 
-  if (hour >= 4 && hour < 8) return '晨起';
-  if (hour >= 8 && hour < 12) return '上午';
-  if (hour >= 12 && hour < 14) return '午间';
-  if (hour >= 14 && hour < 18) return '午后';
-  if (hour >= 18 && hour < 22) return '晚间';
+  if (hour >= 4 && hour < 9) return '晨起';
+  if (hour >= 9 && hour < 12) return '上午';
+  if (hour >= 12 && hour < 15) return '午间';
+  if (hour >= 15 && hour < 19) return '午后';
+  if (hour >= 19 && hour < 23) return '晚间';
   return '夜深';
 }
 

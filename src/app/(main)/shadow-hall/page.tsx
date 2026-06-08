@@ -21,6 +21,61 @@ export default function ShadowHallPage() {
   const [selectedShadow, setSelectedShadow] = useState<Shadow | null>(null);
   const [shadowRecords, setShadowRecords] = useState<ShadowRecord[]>([]);
   const [ratingShadow, setRatingShadow] = useState<Shadow | null>(null);
+  const [showAddShadow, setShowAddShadow] = useState(false);
+
+  // 计算哪些阴影类型用户还没有
+  const getAvailableShadows = () => {
+    const allTypes = [
+      { type: 'arrogance' as const, name: '逆星', desc: '高傲——自视甚高、听不进劝' },
+      { type: 'selfishness' as const, name: '毒疮', desc: '自私——只顾自己、不顾他人' },
+    ];
+    const existingTypes = new Set(
+      [...activeShadows, ...dormantShadows].map(s => s.shadow_type)
+    );
+    return allTypes.filter(s => !existingTypes.has(s.type));
+  };
+
+  // 加载所有阴影数据
+  const loadShadows = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: allShadows } = await supabase
+      .from('shadows')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true });
+
+    if (allShadows) {
+      setActiveShadows(allShadows.filter(s => s.is_active));
+      setDormantShadows(allShadows.filter(s => !s.is_active));
+    }
+  };
+
+  // 添加新阴影
+  const handleAddShadow = async (shadowType: 'arrogance' | 'selfishness') => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('shadows')
+      .insert({
+        user_id: user.id,
+        shadow_type: shadowType,
+        current_hp: 7,
+        max_hp: 7,
+        shatter_count: 0,
+        is_active: true,
+      });
+
+    if (error) {
+      console.error('Failed to add shadow:', error);
+      return;
+    }
+
+    setShowAddShadow(false);
+    await loadShadows();
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -86,7 +141,13 @@ export default function ShadowHallPage() {
     setRatingShadow(shadow);
   };
 
-  const handleRatingSubmit = async (rating: '+1' | '-1' | 'skip' | 'breakthrough', behaviorRecord: string) => {
+  const handleRatingSubmit = async (
+    rating: '+1' | '-1' | 'skip' | 'breakthrough',
+    behaviorRecord: string,
+    reflectionDepth: number | null,
+    triggerTags: string[],
+    behaviorScore: number | null
+  ) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user || !ratingShadow) return;
 
@@ -102,6 +163,9 @@ export default function ShadowHallPage() {
         self_rating: rating,
         behavior_record: behaviorRecord,
         teacher_response: getTeacherResponse(rating, ratingShadow.shadow_type),
+        reflection_depth: reflectionDepth,
+        trigger_tags: triggerTags,
+        behavior_score: behaviorScore,
       });
 
     if (recordError) {
@@ -160,17 +224,7 @@ export default function ShadowHallPage() {
     }
 
     setRatingShadow(null);
-
-    // Refresh data
-    const { data: allShadows } = await supabase
-      .from('shadows')
-      .select('*')
-      .eq('user_id', user.id);
-
-    if (allShadows) {
-      setActiveShadows(allShadows.filter(s => s.is_active));
-      setDormantShadows(allShadows.filter(s => !s.is_active));
-    }
+    await loadShadows();
   };
 
   const getTeacherResponse = (rating: string, shadowType: string) => {
@@ -320,10 +374,57 @@ export default function ShadowHallPage() {
         )}
 
         {/* Add Shadow Button */}
-        <button className="w-full p-4 border border-dashed border-stone-700 hover:border-amber-600/50 rounded-lg text-stone-500 hover:text-amber-400 flex items-center justify-center gap-2 transition-all">
-          <Plus size={18} />
-          新增阴影
-        </button>
+        {getAvailableShadows().length > 0 ? (
+          <button
+            onClick={() => setShowAddShadow(true)}
+            className="w-full p-4 border border-dashed border-stone-700 hover:border-amber-600/50 rounded-lg text-stone-500 hover:text-amber-400 flex items-center justify-center gap-2 transition-all"
+          >
+            <Plus size={18} />
+            新增阴影
+          </button>
+        ) : (
+          <p className="text-center text-stone-600 text-sm py-4">
+            所有阴影已被唤醒。继续战斗吧，殿下。
+          </p>
+        )}
+
+        {/* Add Shadow Dialog */}
+        {showAddShadow && (
+          <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center" onClick={() => setShowAddShadow(false)}>
+            <div
+              className="w-full max-w-md bg-stone-900 border border-stone-700 rounded-t-2xl sm:rounded-2xl p-6 space-y-4 animate-slide-up"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-serif text-amber-400 text-center">你想面对哪个阴影？</h3>
+              <p className="text-stone-500 text-sm text-center">选择你想对抗的性格缺陷</p>
+
+              <div className="space-y-3">
+                {getAvailableShadows().map((shadow) => (
+                  <button
+                    key={shadow.type}
+                    onClick={() => handleAddShadow(shadow.type)}
+                    className="w-full p-4 bg-stone-800 border border-stone-700 hover:border-amber-500 rounded-lg text-left transition-all"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{shadow.type === 'arrogance' ? '⭐' : '💀'}</span>
+                      <div>
+                        <p className="text-stone-200 font-medium">{shadow.name}</p>
+                        <p className="text-stone-500 text-sm">{shadow.desc}</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setShowAddShadow(false)}
+                className="w-full py-2 text-stone-500 hover:text-stone-300 text-sm"
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Rating Modal */}

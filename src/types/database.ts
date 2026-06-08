@@ -10,6 +10,7 @@ export type DialogueStatus = 'in_progress' | 'completed' | 'abandoned';
 export interface Profile {
   id: string;
   username: string | null;
+  nickname: string | null;
   avatar_url: string | null;
   current_phase: Phase;
   wangde: number;
@@ -61,6 +62,9 @@ export interface ShadowRecord {
   behavior_record: string; // required, user's description of what happened
   reflection_detail: string | null; // added after evening dialogue follow-up
   teacher_response: string | null; // auto-generated teacher response
+  reflection_depth: number | null; // 1-5, how deeply did user reflect
+  trigger_tags: string[] | null; // e.g. ['与人交谈', '工作中', '压力下']
+  behavior_score: number | null; // 1-10 holistic self-assessment
   created_at: string;
 }
 
@@ -191,4 +195,100 @@ export interface ShadowDiscussion {
   openingResponse: string;
   followUpResponses: string[];
   closingResponse: string;
+}
+
+// ===== DayRecord — single-day container =====
+export type DayStatus = 'planning' | 'in_progress' | 'closing';
+
+export interface DayRecord {
+  id: string;
+  userId: string;
+  dayNumber: number;
+  calendarDate: string;
+  phase: Phase;
+
+  flag: Flag;
+  schedule: HomeworkSlot[];
+  shadowAssessments: ShadowAssessmentRecord[];
+  kinglyDeeds: KinglyDeed[];
+  meditation: MeditationRecord | null;
+
+  evening: {
+    mode: 'full' | 'quick' | 'skipped' | null;
+    completedAt: string | null;
+  };
+
+  summary: DaySummary | null;
+  status: DayStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Flag {
+  text: string;
+  associatedShadowIds: string[];
+  reward: string;
+  status: 'completed' | 'failed' | 'unmarked';
+  source: 'morning_plan' | 'evening' | 'day_panel' | null;
+  confirmedAt: string | null;
+}
+
+export interface HomeworkSlot {
+  type: 'reading' | 'writing' | 'labor' | 'meditation' | 'exercise';
+  customLabel?: string;
+  detail?: string;
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  status: 'unmarked' | 'done' | 'missed';
+  quality?: number;      // 1-5 self-rating
+  reflection?: string;   // free-text reflection on this lesson
+}
+
+export interface ShadowAssessmentRecord {
+  shadowId: string;
+  shadowType: ShadowType;
+  choice: 'plus' | 'minus' | 'skip' | null;
+  record: string;
+  additionalReflections?: string;
+  submittedAt: string | null;
+}
+
+export interface KinglyDeed {
+  description: string;
+  recordedAt: string;
+  source: 'day_self_assessment' | 'evening_dialogue';
+}
+
+// Behavior Entry — general daily behavior journal (non-shadow, non-lesson)
+export interface BehaviorEntry {
+  id: string;
+  user_id: string;
+  date: string; // "YYYY-MM-DD"
+  entry_type: 'lesson' | 'general_behavior' | 'kingly_deed' | 'meditation';
+  category: string; // 'reading'|'writing'|'labor'|'meditation'|'exercise'|'work'|'family'|'social'|'self'|'health'
+  description: string; // what happened
+  response: string | null; // how I responded
+  score: number; // 1-10 (or 1-5 for lessons)
+  reflection: string | null; // free text reflection
+  tags: string[]; // e.g. ['工作中', '压力下']
+  created_at: string;
+}
+
+export interface MeditationRecord {
+  content: string;
+  guidedPrompt?: string;
+  submittedAt: string;
+}
+
+export interface DaySummary {
+  flagStatus: 'completed' | 'failed' | 'unmarked';
+  shadowChanges: Record<string, {
+    hpChange: number;
+    newHp: number;
+    didCollapse: boolean;
+  }>;
+  virtuePoints: number;
+  distanceChange: number;
+  mentorQuote: string;
 }

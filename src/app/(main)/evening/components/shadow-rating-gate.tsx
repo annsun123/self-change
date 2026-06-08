@@ -8,7 +8,14 @@ import { getOpeningContent } from "@/lib/evening-state-machine";
 interface ShadowRatingGateProps {
   context: EveningContext;
   onComplete: () => void;
-  onRatingSubmit: (rating: "+1" | "-1" | "skip" | "breakthrough", behaviorRecord: string, shadowType: string) => Promise<void>;
+  onRatingSubmit: (
+    rating: "+1" | "-1" | "skip" | "breakthrough",
+    behaviorRecord: string,
+    shadowType: string,
+    reflectionDepth: number | null,
+    triggerTags: string[],
+    behaviorScore: number | null
+  ) => Promise<void>;
 }
 
 export function ShadowRatingGate({ context, onComplete, onRatingSubmit }: ShadowRatingGateProps) {
@@ -53,8 +60,8 @@ export function ShadowRatingGate({ context, onComplete, onRatingSubmit }: Shadow
           current_hp: shadow.currentHp,
           max_hp: shadow.maxHp,
         } as any}
-        onSubmit={async (rating, behaviorRecord) => {
-          await onRatingSubmit(rating, behaviorRecord, shadow.shadowType);
+        onSubmit={async (rating, behaviorRecord, reflectionDepth, triggerTags, behaviorScore) => {
+          await onRatingSubmit(rating, behaviorRecord, shadow.shadowType, reflectionDepth, triggerTags, behaviorScore);
           if (ratingShadowIndex + 1 < unrecordedShadows.length) {
             setRatingShadowIndex((prev) => prev + 1);
           } else {
@@ -64,7 +71,6 @@ export function ShadowRatingGate({ context, onComplete, onRatingSubmit }: Shadow
         }}
         onClose={() => {
           setShowRatingCard(false);
-          onComplete();
         }}
       />
     );
@@ -94,14 +100,8 @@ export function ShadowRatingGate({ context, onComplete, onRatingSubmit }: Shadow
           记录今日战况
         </button>
         <p className="text-stone-500 text-sm">
-          不记录也可以直接进入，但先生会记住今日未曾复盘。
+          先生等着你记录今日战况。
         </p>
-        <button
-          onClick={onComplete}
-          className="text-stone-500 hover:text-stone-400 text-sm"
-        >
-          先不记了，继续
-        </button>
       </div>
     </div>
   );

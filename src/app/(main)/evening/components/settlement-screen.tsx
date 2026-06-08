@@ -15,32 +15,62 @@ export function SettlementScreen({ context, state, onComplete, onExit }: Settlem
   const [countdown, setCountdown] = useState(15);
   const [isQuickPath] = useState(state.dialoguePath === 'quick');
   const onCompleteRef = useRef(onComplete);
+  const onExitRef = useRef(onExit);
   const completedRef = useRef(false);
 
-  // Keep ref updated
+  console.log('[SettlementScreen] Rendering, countdown:', countdown);
+
+  // Keep refs updated
   useEffect(() => {
     onCompleteRef.current = onComplete;
-  }, [onComplete]);
+    onExitRef.current = onExit;
+  }, [onComplete, onExit]);
 
+  // Countdown timer
   useEffect(() => {
-    // Skip if already completed
-    if (completedRef.current) return;
-    completedRef.current = false;
-
     const timer = setInterval(() => {
       setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          completedRef.current = true;
-          onCompleteRef.current();
-          return 0;
-        }
+        if (prev <= 1) return 0;
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []); // Empty deps - only run once on mount
+  }, []);
+
+  // Trigger completion when countdown reaches 0
+  useEffect(() => {
+    if (countdown === 0 && !completedRef.current) {
+      completedRef.current = true;
+      console.log('[SettlementScreen] Countdown reached 0, calling onComplete');
+      onCompleteRef.current();
+    }
+  }, [countdown]);
+
+  const handleSkip = () => {
+    console.log('[SettlementScreen] Skip button clicked, calling onExit');
+    if (!completedRef.current) {
+      completedRef.current = true;
+      onExitRef.current();
+    }
+  };
+
+  const [saving, setSaving] = useState(false);
+
+  const handleViewBehavior = () => {
+    console.log('[SettlementScreen] View behavior analysis clicked — saving first');
+    if (!completedRef.current) {
+      completedRef.current = true;
+      setSaving(true);
+      // Trigger save, then navigate after a short delay
+      onExitRef.current();
+      setTimeout(() => {
+        window.location.href = '/behavior-analysis';
+      }, 2000);
+    } else {
+      window.location.href = '/behavior-analysis';
+    }
+  };
 
   const settlementData = generateSettlementData(
     state,
@@ -52,10 +82,8 @@ export function SettlementScreen({ context, state, onComplete, onExit }: Settlem
     context.profile.wangde
   );
 
-  // For quick path, get the direct comment
-  const quickComment = isQuickPath ? getQuickPathTeacherComment(context.sessionTone) : null;
-  const teacherComment = quickComment?.text || settlementData.teacherComment;
-  const teacher = quickComment?.teacher || (settlementData.direction === 'negative' ? 'xu' : 'shen');
+  const teacherComment = settlementData.teacherComment;
+  const teacher = settlementData.direction === 'negative' ? 'xu' : 'shen';
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-stone-950">
@@ -88,11 +116,11 @@ export function SettlementScreen({ context, state, onComplete, onExit }: Settlem
                     {Array.from({ length: shadow.maxHp }).map((_, i) => (
                       <span
                         key={i}
-                        className={`w-3 h-3 ${
-                          i < hpAfter ? 'text-amber-500' : 'text-stone-700'
+                        className={`text-sm ${
+                          i < hpAfter ? 'text-amber-500' : 'text-stone-600'
                         }`}
                       >
-                        ●
+                        {i < hpAfter ? '⬛' : '⬜'}
                       </span>
                     ))}
                   </div>
@@ -129,7 +157,7 @@ export function SettlementScreen({ context, state, onComplete, onExit }: Settlem
         {/* Countdown */}
         <div className="text-center space-y-2">
           <div className="text-stone-600 text-sm">
-            {isQuickPath ? '快速结算' : '即将进入结算'}
+            {'即将进入结算'}
           </div>
           <div className="text-amber-500/60 text-4xl font-light">
             {countdown}
@@ -138,12 +166,21 @@ export function SettlementScreen({ context, state, onComplete, onExit }: Settlem
         </div>
 
         {/* Skip button */}
-        <button
-          onClick={onExit}
-          className="w-full py-3 text-stone-500 hover:text-stone-400 text-sm transition-all"
-        >
-          跳过 →
-        </button>
+        <div className="space-y-3">
+          <button
+            onClick={handleSkip}
+            className="w-full py-3 text-stone-500 hover:text-stone-400 text-sm transition-all"
+          >
+            跳过 →
+          </button>
+          <button
+            onClick={handleViewBehavior}
+            disabled={saving}
+            className="w-full py-2 text-stone-600 hover:text-stone-400 disabled:text-stone-700 text-xs transition-all"
+          >
+            {saving ? '保存中...' : '📜 查看行为录'}
+          </button>
+        </div>
       </div>
     </div>
   );

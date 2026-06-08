@@ -23,9 +23,12 @@ export function Round1Flag({ context, state, onComplete, onExitEarly, onFlagAnsw
     autoResponse.autoResponse ? 'response' : 'question'
   );
   const [responseText, setResponseText] = useState(autoResponse.autoResponse ? autoResponse.autoResponseText : '');
-  const [teacher] = useState<'shen' | 'xu'>(
-    flagStatus === false ? 'xu' : 'shen'
-  );
+  const [teacher] = useState<'shen' | 'xu'>(() => {
+    // Pre-marked flags (both ✅ and ❌) use 申先生
+    if (flagStatus === true || flagStatus === false) return 'shen';
+    // Unmarked flag — 申先生 asks, but 徐娘子 may take over based on answer
+    return 'shen';
+  });
 
   const handleUserResponse = (answer: 'completed' | 'not_completed' | 'forgot' | 'skip') => {
     const outcome = getFlagUserResponseOutcome(answer);

@@ -4,11 +4,19 @@ import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+/** 将用户名转换为内部代理邮箱 */
+function usernameToEmail(username: string): string {
+  // 去掉首尾空格，内部用 .user 域避免与真实邮箱冲突
+  return `${username.trim()}@selfchange.app`;
+}
+
 export default function LoginPage() {
   const supabase = createClient();
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
@@ -18,33 +26,68 @@ export default function LoginPage() {
     setLoading(true);
     setMessage(null);
 
+    const trimmedUsername = username.trim();
+    const trimmedNickname = nickname.trim();
+
+    if (!trimmedUsername) {
+      setMessage({ type: "error", text: "请输入用户名" });
+      setLoading(false);
+      return;
+    }
+
+    if (isSignUp) {
+      if (!trimmedNickname) {
+        setMessage({ type: "error", text: "请设置昵称" });
+        setLoading(false);
+        return;
+      }
+      if (password.length < 6) {
+        setMessage({ type: "error", text: "密码至少需要6位" });
+        setLoading(false);
+        return;
+      }
+      if (password !== confirmPassword) {
+        setMessage({ type: "error", text: "两次输入的密码不一致" });
+        setLoading(false);
+        return;
+      }
+    }
+
+    // 内部构造代理邮箱
+    const email = usernameToEmail(trimmedUsername);
+
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
+        // 通过 Admin API 注册，不触发邮件，不受邮件频率限制
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: trimmedUsername,
+            password,
+            nickname: trimmedNickname,
+          }),
         });
-        if (error) throw error;
-        setMessage({ type: "success", text: "注册成功！请检查邮箱验证或直接登录。" });
+        const result = await res.json();
+
+        if (!res.ok) {
+          throw new Error(result.error || "注册失败");
+        }
+
+        setMessage({ type: "success", text: "注册成功！请登录。" });
         setIsSignUp(false);
+        setPassword("");
+        setConfirmPassword("");
+        setNickname("");
       } else {
+        // 登录：用代理邮箱
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (error) throw error;
-        // 登录成功后直接检查 profile 并跳转
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("onboarding_complete")
-          .eq("id", (await supabase.auth.getUser()).data.user?.id)
-          .single();
 
-        if (!profile || !profile.onboarding_complete) {
-          router.push("/onboarding");
-        } else {
-          router.push("/scroll-map");
-        }
+        router.push("/scroll-map");
       }
     } catch (err: unknown) {
       setMessage({ type: "error", text: err instanceof Error ? err.message : "操作失败" });
@@ -64,24 +107,52 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="邮箱"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="用户名"
+              autoComplete="username"
               required
               className="w-full px-4 py-3 bg-stone-900 border border-stone-800 rounded-lg text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-500"
             />
           </div>
+          {isSignUp && (
+            <div>
+              <input
+                type="text"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder="昵称（显示名称）"
+                autoComplete="nickname"
+                required={isSignUp}
+                className="w-full px-4 py-3 bg-stone-900 border border-stone-800 rounded-lg text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-500"
+              />
+            </div>
+          )}
           <div>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="密码"
+              autoComplete={isSignUp ? "new-password" : "current-password"}
               required
               className="w-full px-4 py-3 bg-stone-900 border border-stone-800 rounded-lg text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-500"
             />
           </div>
+          {isSignUp && (
+            <div>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="确认密码"
+                autoComplete="new-password"
+                required={isSignUp}
+                className="w-full px-4 py-3 bg-stone-900 border border-stone-800 rounded-lg text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-500"
+              />
+            </div>
+          )}
 
           {message && (
             <div
@@ -107,6 +178,8 @@ export default function LoginPage() {
             onClick={() => {
               setIsSignUp(!isSignUp);
               setMessage(null);
+              setNickname("");
+              setConfirmPassword("");
             }}
             className="text-sm text-stone-500 hover:text-amber-400 transition-colors"
           >

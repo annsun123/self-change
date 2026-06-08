@@ -115,7 +115,10 @@ export default function OnboardingPage() {
       current_phase: "awakening",
     };
 
-    await supabase.from("profiles").update(updates).eq("id", user.id);
+    await supabase.from("profiles").upsert(
+      { id: user.id, ...updates },
+      { onConflict: "id" }
+    );
 
     // 如果有阴影伤害，创建或更新阴影记录
     for (const [shadowType, damage] of Object.entries(shadowDamage)) {

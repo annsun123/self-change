@@ -10,6 +10,7 @@ export type EveningPhase =
   | 'round_0_candlelight'
   | 'round_1_flag'
   | 'round_2_lessons'
+  | 'round_behavior_journal'
   | 'round_3_shadow'
   | 'round_4_infiltration'
   | 'round_5_winddown'

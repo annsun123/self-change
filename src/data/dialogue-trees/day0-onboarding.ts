@@ -41,6 +41,12 @@ export const day0OnboardingTree: Record<string, DialogueNode> = {
     text: "知道错，是改的第一步。",
     nextNodeId: "xu_deep_question",
   },
+  xu_deep_question: {
+    id: "xu_deep_question",
+    speaker: "xu_niangzi",
+    text: "能说出来，就已经不是同一个人了。——殿下心里，有想改变的事吗？",
+    nextNodeId: "core_question",
+  },
 
   // 分支B：说不清
   answer_confused: {
@@ -160,7 +166,7 @@ export const day0OnboardingTree: Record<string, DialogueNode> = {
     id: "lesson_accept",
     speaker: "shen_xiansheng",
     text: "明日清晨，我告诉你第一件事。",
-    nextNodeId: "xu_encouragement",
+    nextNodeId: "declaration",
   },
 
   // 表达恐惧（深入分支）
@@ -183,12 +189,42 @@ export const day0OnboardingTree: Record<string, DialogueNode> = {
     id: "fear_cant_change",
     speaker: "xu_niangzi",
     text: "殿下，没人要求你一夜间变一个人。今天你能坐在这里认错，已经是三年来第一次了。",
-    nextNodeId: "xu_encouragement",
+    nextNodeId: "declaration",
   },
   fear_not_forgiven: {
     id: "fear_not_forgiven",
     speaker: "xu_niangzi",
     text: "原谅不原谅，要看你的行动。但至少要让他看到，他儿子在努力。",
+    nextNodeId: "declaration",
+  },
+
+  // 立誓 — 王子宣言
+  declaration: {
+    id: "declaration",
+    speaker: "shen_xiansheng",
+    text: "在开始之前，有一件事要做。——你对自己说一句话。不是对我，不是对父王，是对你自己。\\n\\n你想成为什么样的人？",
+    choices: [
+      {
+        text: "我想堂堂正正地回去。",
+        nextNodeId: "declaration_response",
+        effect: { wangde: 2 },
+      },
+      {
+        text: "我想对得起自己。",
+        nextNodeId: "declaration_response",
+        effect: { wangde: 2 },
+      },
+      {
+        text: "（沉默良久）……我不想再逃了。",
+        nextNodeId: "declaration_response",
+        effect: { wangde: 2 },
+      },
+    ],
+  },
+  declaration_response: {
+    id: "declaration_response",
+    speaker: "xu_niangzi",
+    text: "好。记住这句话。——往后难的时候，我会提醒你自己说过什么。",
     nextNodeId: "xu_encouragement",
   },
 

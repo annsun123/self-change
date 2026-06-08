@@ -12,25 +12,5 @@ export default async function Home() {
     redirect("/login");
   }
 
-  // Check if profile exists and onboarding is complete
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("onboarding_complete")
-    .eq("id", user.id)
-    .single();
-
-  // If profile doesn't exist, create one and go to onboarding
-  if (!profile) {
-    await supabase.from("profiles").insert({
-      id: user.id,
-      username: user.email,
-    });
-    redirect("/onboarding");
-  }
-
-  if (!profile.onboarding_complete) {
-    redirect("/onboarding");
-  }
-
   redirect("/scroll-map");
 }

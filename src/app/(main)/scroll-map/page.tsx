@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import type { Profile, Shadow, DailySchedule } from "@/types/database";
 import { getPhaseDisplayInfo, type Weather } from "@/lib/game-logic";
 import { getVeinCount, VEIN_POSITIONS, hasFullGlow } from "@/lib/wangde-visual";
+import { TOTAL_STEPS } from "@/lib/assessment";
 import { FIVE_TASKS } from "@/components/morning/encouragement-pool";
 
 export default function ScrollMapPage() {
@@ -38,31 +39,15 @@ export default function ScrollMapPage() {
 
       if (profileData) {
         setProfile(profileData);
-
-        // Calculate weather from recent records
-        const { data: recentRecords } = await supabase
-          .from('shadow_records')
-          .select('self_rating')
-          .eq('user_id', user.id)
-          .order('date', { ascending: false })
-          .limit(7);
-
-        if (recentRecords && recentRecords.length > 0) {
-          // Calculate performance score
-          let score = 0;
-          recentRecords.forEach(r => {
-            if (r.self_rating === '-1') score += 1;
-            if (r.self_rating === '+1') score -= 1;
-            // skip doesn't affect score
-          });
-
-          // Apply weather logic
-          if (score >= 3) setWeather("clear");
-          else if (score >= 1) setWeather("cloudy");
-          else if (score >= -1) setWeather("rainbow");
-          else setWeather("storm");
-        }
       }
+
+      // Load shadow records for weather calculation
+      const { data: recentRecords } = await supabase
+        .from('shadow_records')
+        .select('self_rating')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false })
+        .limit(7);
 
       // Load shadow data
       const { data: shadowsData } = await supabase
@@ -85,6 +70,33 @@ export default function ScrollMapPage() {
 
       if (scheduleData) {
         setTodaySchedule(scheduleData);
+      }
+
+      // Calculate holistic weather from shadow records + lessons + flag
+      if (recentRecords && recentRecords.length > 0) {
+        let score = 0;
+        recentRecords.forEach(r => {
+          if (r.self_rating === '-1') score += 1;
+          if (r.self_rating === '+1') score -= 1;
+        });
+
+        // Incorporate lesson completion
+        if (scheduleData?.tasks && scheduleData.tasks.length > 0) {
+          const completedCount = scheduleData.tasks.filter((t: any) => t.completed).length;
+          const rate = completedCount / scheduleData.tasks.length;
+          if (rate >= 0.7) score += 1;
+          else if (rate === 0) score -= 1;
+        }
+
+        // Incorporate flag achievement
+        if (profileData?.today_goal_achieved === true) score += 1;
+        else if (profileData?.today_goal_achieved === false) score -= 1;
+
+        // Apply weather logic
+        if (score >= 3) setWeather("clear");
+        else if (score >= 1) setWeather("cloudy");
+        else if (score >= -1) setWeather("rainbow");
+        else setWeather("storm");
       }
 
       setLoading(false);
@@ -187,6 +199,12 @@ export default function ScrollMapPage() {
         </div>
         <div className="flex items-center gap-3">
           <button
+            onClick={() => router.push('/behavior-analysis')}
+            className="px-3 py-1.5 text-xs text-stone-500 hover:text-stone-300 border border-stone-800 rounded"
+          >
+            📜 行为录
+          </button>
+          <button
             onClick={() => router.push('/shadow-hall')}
             className="px-3 py-1.5 text-xs text-stone-500 hover:text-stone-300 border border-stone-800 rounded"
           >
@@ -217,11 +235,21 @@ export default function ScrollMapPage() {
             </div>
             <div className="space-y-2">
               <h2 className="text-2xl font-serif text-amber-400">
-                {profile?.day_in_journey || 1} day in journey
+                第 {profile?.created_at
+  ? Math.max(1, Math.ceil((Date.now() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24)))
+  : 1} 天
               </h2>
-              <p className="text-stone-400 text-sm">
-                {profile ? `Position: ${profile.scroll_position}` : "Loading..."}
-              </p>
+              <div className="flex items-center justify-center gap-2">
+                <p className="text-stone-400 text-sm">
+                  {profile ? `当前位置：${profile.scroll_position.toLocaleString()}` : "Loading..."}
+                </p>
+                <button
+                  onClick={() => router.push('/assessment')}
+                  className="px-2 py-0.5 text-xs text-amber-400 border border-amber-600/30 hover:bg-amber-900/20 rounded transition-all"
+                >
+                  ⚔ 考核
+                </button>
+              </div>
             </div>
 
             {/* 王子状态 + 旗帜 */}
@@ -235,10 +263,10 @@ export default function ScrollMapPage() {
               )}
               <div className="text-left">
                 <p className="text-amber-300 text-sm">
-                  {profile?.username || "殿下"}
+                  {profile?.nickname || profile?.username || "殿下"}
                 </p>
                 <p className="text-stone-500 text-xs">
-                  距离王宫还有 {100 - (profile?.scroll_position || 0)} 步
+                  距离王宫还有 {Math.max(0, TOTAL_STEPS - (profile?.scroll_position || 0)).toLocaleString()} 步
                 </p>
               </div>
             </div>
