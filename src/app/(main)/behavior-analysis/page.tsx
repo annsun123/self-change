@@ -24,6 +24,8 @@ export default function BehaviorAnalysisPage() {
 
   // Computed data
   const [compass, setCompass] = useState<WeeklyCompass | null>(null);
+  const [previousCompass, setPreviousCompass] = useState<WeeklyCompass | null>(null);
+  const [previousVoided, setPreviousVoided] = useState(false);
   const [chronicle, setChronicle] = useState<ChronicleWeek[]>([]);
   const [patterns, setPatterns] = useState<PatternInsights | null>(null);
 
@@ -101,14 +103,58 @@ export default function BehaviorAnalysisPage() {
       }));
 
       // Compute analytics
+
+      // Determine assessment periods
+      const today = new Date().toISOString().split('T')[0];
+      const profileData = profile as Record<string, unknown> | null;
+      const lastAssessment = (profileData?.last_assessment_date as string) || undefined;
+
+      // Current period: since last assessment → today
+      const currentSince = lastAssessment || thirtyDaysAgo.toISOString().split('T')[0];
+      const currentUntil = today;
+
       const compassData = computeWeeklyCompass(
         parsedDayRecords,
         parsedShadowRecords,
         parsedBehaviorEntries,
         profile?.current_phase || 'awakening',
         profile?.day_in_journey || 1,
-        activeShadows
+        activeShadows,
+        { since: currentSince, until: currentUntil }
       );
+
+      // Previous period: the assessment period before the last assessment
+      let prevCompassData: WeeklyCompass | null = null;
+      let isPrevVoided = false;
+
+      if (lastAssessment) {
+        const prevUntil = lastAssessment;
+        const prevDate = new Date(lastAssessment);
+        const prevDay = prevDate.getDay();
+
+        // Days back to previous assessment day
+        let daysBack = 0;
+        if (prevDay === 2) daysBack = 3;       // Tue → last Sat
+        else if (prevDay === 6) daysBack = 4;  // Sat → last Tue
+
+        if (daysBack > 0) {
+          prevDate.setDate(prevDate.getDate() - daysBack);
+          const prevSince = prevDate.toISOString().split('T')[0];
+
+          prevCompassData = computeWeeklyCompass(
+            parsedDayRecords,
+            parsedShadowRecords,
+            parsedBehaviorEntries,
+            profile?.current_phase || 'awakening',
+            profile?.day_in_journey || 1,
+            activeShadows,
+            { since: prevSince, until: prevUntil }
+          );
+
+          // Voided if no entries in the previous period
+          isPrevVoided = prevCompassData.totalEntries === 0;
+        }
+      }
 
       const chronicleData = computeChronicleEntries(
         parsedDayRecords,
@@ -124,6 +170,8 @@ export default function BehaviorAnalysisPage() {
       );
 
       setCompass(compassData);
+      setPreviousCompass(prevCompassData);
+      setPreviousVoided(isPrevVoided);
       setChronicle(chronicleData);
       setPatterns(patternData);
       } catch (e) {
@@ -197,7 +245,11 @@ export default function BehaviorAnalysisPage() {
 
       <main className="p-4 space-y-6 pb-20">
         {activeTab === 'compass' && compass && (
-          <BehaviorCompass compass={compass} />
+          <BehaviorCompass
+            compass={compass}
+            previousCompass={previousCompass}
+            previousVoided={previousVoided}
+          />
         )}
 
         {activeTab === 'chronicle' && (

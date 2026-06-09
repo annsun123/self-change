@@ -44,11 +44,11 @@ function getLastAssessmentDate(): Date | null {
 
   // Calculate days since last assessment
   let daysSince = 0;
-  if (currentDay === 2) daysSince = 4; // Tue → last Sat (4 days ago)
-  else if (currentDay === 6) daysSince = 3; // Sat → last Tue (3 days ago)
-  else if (currentDay < 2) daysSince = currentDay + 5; // Sun/Mon → last Sat
+  if (currentDay === 2) daysSince = 3; // Tue → last Sat (3 days ago)
+  else if (currentDay === 6) daysSince = 4; // Sat → last Tue (4 days ago)
+  else if (currentDay < 2) daysSince = currentDay + 1; // Sun(1) / Mon(2) → last Sat
   else if (currentDay < 6) daysSince = currentDay - 2; // Wed/Thu/Fri → last Tue
-  else daysSince = currentDay - 6; // Shouldn't happen since 6 is Sat
+  else daysSince = 0; // Shouldn't happen
 
   if (daysSince <= 0) return null; // First assessment ever
 

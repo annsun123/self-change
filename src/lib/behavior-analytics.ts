@@ -5,6 +5,7 @@ import type {
   ShadowWeekSummary,
   ChronicleEntry,
   ChronicleWeek,
+  ChronicleCategoryGroup,
   PatternInsights,
   ReflectionCorrelation,
   TriggerContextDistribution,
@@ -39,39 +40,78 @@ const BEHAVIOR_CATEGORY_META: Record<string, { label: string; emoji: string }> =
 
 // ============ Weekly Compass ============
 
+const DAY_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
+/** Generate a period label like "周六—周二" from date range */
+export function getPeriodLabel(since: string, until: string): string {
+  const sinceDay = new Date(since).getDay();
+  const untilDay = new Date(until).getDay();
+  return `${DAY_NAMES[sinceDay]}—${DAY_NAMES[untilDay]}`;
+}
+
+export interface DateRange {
+  since: string; // "YYYY-MM-DD"
+  until: string; // "YYYY-MM-DD"
+}
+
 export function computeWeeklyCompass(
   dayRecords: DayRecord[],
   shadowRecords: ShadowRecord[],
   behaviorEntries: BehaviorEntry[],
   currentPhase: string,
   dayInJourney: number,
-  activeShadows: Array<{ shadowType: ShadowType; currentHp: number; maxHp: number }>
+  activeShadows: Array<{ shadowType: ShadowType; currentHp: number; maxHp: number }>,
+  dateRange?: DateRange
 ): WeeklyCompass {
   const phaseInfo = getPhaseDisplayInfo(currentPhase as 'awakening' | 'self_cultivation' | 'trials' | 'return');
 
+  // Filter data by date range if provided
+  let filteredDayRecords = dayRecords;
+  let filteredShadowRecords = shadowRecords;
+  let filteredBehaviorEntries = behaviorEntries;
+
+  if (dateRange) {
+    filteredDayRecords = dayRecords.filter(
+      d => d.calendarDate >= dateRange.since && d.calendarDate <= dateRange.until
+    );
+    filteredShadowRecords = shadowRecords.filter(
+      r => r.date >= dateRange.since && r.date <= dateRange.until
+    );
+    filteredBehaviorEntries = behaviorEntries.filter(
+      e => e.date >= dateRange.since && e.date <= dateRange.until
+    );
+  }
+
+  const periodLabel = dateRange
+    ? getPeriodLabel(dateRange.since, dateRange.until)
+    : `${phaseInfo.name}`;
+
   // Lesson quality summaries
-  const lessonSummaries = computeLessonSummaries(dayRecords);
+  const lessonSummaries = computeLessonSummaries(filteredDayRecords);
 
   // Shadow week summaries
-  const shadowSummaries = computeShadowSummaries(shadowRecords, activeShadows);
+  const shadowSummaries = computeShadowSummaries(filteredShadowRecords, activeShadows);
 
   // Average behavior score
   const allScores = [
-    ...shadowRecords.filter(r => r.behavior_score != null).map(r => r.behavior_score!),
-    ...behaviorEntries.filter(e => e.score > 0).map(e => e.score),
+    ...filteredShadowRecords.filter(r => r.behavior_score != null).map(r => r.behavior_score!),
+    ...filteredBehaviorEntries.filter(e => e.score > 0).map(e => e.score),
   ];
   const avgBehaviorScore = allScores.length > 0
     ? Math.round((allScores.reduce((a, b) => a + b, 0) / allScores.length) * 10) / 10
     : 0;
 
   // Trend direction
-  const trendDirection = computeTrendDirection(shadowRecords, behaviorEntries);
+  const trendDirection = computeTrendDirection(filteredShadowRecords, filteredBehaviorEntries);
 
   // Reflection depth
-  const allDepths = shadowRecords.filter(r => r.reflection_depth != null).map(r => r.reflection_depth!);
+  const allDepths = filteredShadowRecords.filter(r => r.reflection_depth != null).map(r => r.reflection_depth!);
   const totalReflectionDepth = allDepths.length > 0
     ? Math.round((allDepths.reduce((a, b) => a + b, 0) / allDepths.length) * 10) / 10
     : 0;
+
+  // Total entries count
+  const totalEntries = filteredShadowRecords.length + filteredBehaviorEntries.length;
 
   // Teacher commentary
   const teacherCommentary = generateCompassCommentary(
@@ -84,11 +124,13 @@ export function computeWeeklyCompass(
   return {
     dayInJourney,
     phaseName: phaseInfo.name,
+    periodLabel,
     avgBehaviorScore,
     trendDirection,
     lessonSummaries,
     shadowSummaries,
     totalReflectionDepth,
+    totalEntries,
     teacherCommentary,
   };
 }
@@ -327,6 +369,7 @@ export function computeChronicleEntries(
           weekNumber: currentWeekNumber,
           label: `第 ${currentWeekNumber} 周`,
           entries: [...currentWeek],
+          categoryGroups: [],
         });
       }
       currentWeekNumber = weekNum;
@@ -339,9 +382,18 @@ export function computeChronicleEntries(
     weeks.push({
       weekNumber: currentWeekNumber,
       label: `第 ${currentWeekNumber} 周`,
-      entries: currentWeek,
+      entries: [...currentWeek],
+      categoryGroups: [],
     });
   }
+
+  // Compute category groups for each week
+  for (const week of weeks) {
+    week.categoryGroups = groupChronicleByCategory(week);
+  }
+
+  // Sort weeks by weekNumber ascending (week 1, week 2, ...)
+  weeks.sort((a, b) => a.weekNumber - b.weekNumber);
 
   return weeks;
 }
@@ -581,6 +633,96 @@ function formatRating(rating: string): string {
     case 'skip': return '跳过';
     default: return rating;
   }
+}
+
+// ============ Category Grouping ============
+
+const CATEGORY_SORT_ORDER: Record<string, number> = {
+  // 日课
+  'lesson:reading': 1,
+  'lesson:writing': 2,
+  'lesson:service': 3,
+  'lesson:meditation': 4,
+  'lesson:exercise': 5,
+  // 冥想
+  'meditation:meditation': 6,
+  // 阴影
+  'shadow:arrogance': 7,
+  'shadow:selfishness': 8,
+  // 王德
+  'kingly_deed:kingly_deed': 9,
+  // 行为
+  'behavior:work': 10,
+  'behavior:family': 11,
+  'behavior:social': 12,
+  'behavior:self': 13,
+  'behavior:health': 14,
+  'behavior:learning': 15,
+};
+
+const CATEGORY_LABELS: Record<string, { label: string; icon: string }> = {
+  // 日课
+  'lesson:reading': { label: '日课 · 读书', icon: '📜' },
+  'lesson:writing': { label: '日课 · 习字', icon: '🖌️' },
+  'lesson:service': { label: '日课 · 劳作', icon: '🪓' },
+  'lesson:meditation': { label: '日课 · 修心', icon: '🪷' },
+  'lesson:exercise': { label: '日课 · 运动', icon: '🚶' },
+  // 冥想
+  'meditation:meditation': { label: '修心 · 冥想', icon: '🧘' },
+  // 阴影
+  'shadow:arrogance': { label: '阴影 · 逆星', icon: '⚡' },
+  'shadow:selfishness': { label: '阴影 · 毒疮', icon: '🕳️' },
+  // 王德
+  'kingly_deed:kingly_deed': { label: '王德之举', icon: '⭐' },
+  // 行为
+  'behavior:work': { label: '行为 · 工作', icon: '💼' },
+  'behavior:family': { label: '行为 · 家庭', icon: '🏡' },
+  'behavior:social': { label: '行为 · 社交', icon: '💬' },
+  'behavior:self': { label: '行为 · 独处', icon: '🌿' },
+  'behavior:health': { label: '行为 · 健康', icon: '❤️' },
+  'behavior:learning': { label: '行为 · 学习', icon: '📝' },
+};
+
+export function groupChronicleByCategory(
+  week: ChronicleWeek
+): ChronicleCategoryGroup[] {
+  const groups: Record<string, ChronicleEntry[]> = {};
+
+  for (const entry of week.entries) {
+    const key = `${entry.entryType}:${entry.category}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(entry);
+  }
+
+  // Sort entries within each group by dayNumber descending (newest first)
+  const result: ChronicleCategoryGroup[] = Object.entries(groups)
+    .map(([key, entries]) => {
+      entries.sort((a, b) => b.dayNumber - a.dayNumber);
+
+      const scores = entries.filter(e => e.score != null).map(e => e.score!);
+      const avgScore = scores.length > 0
+        ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10
+        : null;
+
+      const meta = CATEGORY_LABELS[key] || { label: key.replace(':', ' · '), icon: '📋' };
+
+      return {
+        categoryKey: key,
+        label: meta.label,
+        icon: meta.icon,
+        entries,
+        avgScore,
+      };
+    });
+
+  // Sort groups by defined order, unknown keys at the end
+  result.sort((a, b) => {
+    const orderA = CATEGORY_SORT_ORDER[a.categoryKey] ?? 99;
+    const orderB = CATEGORY_SORT_ORDER[b.categoryKey] ?? 99;
+    return orderA - orderB;
+  });
+
+  return result;
 }
 
 export { LESSON_META, SHADOW_META, BEHAVIOR_CATEGORY_META };

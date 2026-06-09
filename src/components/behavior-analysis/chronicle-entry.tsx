@@ -5,9 +5,10 @@ import type { ChronicleEntry as ChronicleEntryType } from "@/types/behavior";
 
 interface ChronicleEntryProps {
   entry: ChronicleEntryType;
+  showDay?: boolean;
 }
 
-export function ChronicleEntry({ entry }: ChronicleEntryProps) {
+export function ChronicleEntry({ entry, showDay = false }: ChronicleEntryProps) {
   const [expanded, setExpanded] = useState(false);
 
   const scoreMax = entry.entryType === 'lesson' ? 5 : 10;
@@ -29,14 +30,23 @@ export function ChronicleEntry({ entry }: ChronicleEntryProps) {
       }`}
       onClick={() => setExpanded(!expanded)}
     >
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-stone-800/50">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-stone-800/50">
+        {/* Day number badge */}
+        {showDay && (
+          <span className="text-stone-600 text-xs flex-shrink-0 w-10 text-right font-mono">
+            D{entry.dayNumber}
+          </span>
+        )}
+
         {/* Type icon */}
         <span className="text-lg flex-shrink-0 w-8 text-center">{entry.icon}</span>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-stone-500 text-xs">{entryTypeLabel}</span>
+            {!showDay && (
+              <span className="text-stone-500 text-xs">{entryTypeLabel}</span>
+            )}
             <span className="text-stone-200 text-sm truncate">{entry.title}</span>
             {entry.score != null && (
               <span className={`text-xs font-medium ${scoreColor}`}>{entry.score}/{scoreMax}</span>

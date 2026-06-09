@@ -27,11 +27,13 @@ export interface ShadowWeekSummary {
 export interface WeeklyCompass {
   dayInJourney: number;
   phaseName: string;
-  avgBehaviorScore: number; // average across all behavior entries
+  periodLabel: string; // "周六—周二"
+  avgBehaviorScore: number; // average across all behavior entries in period
   trendDirection: 'improving' | 'declining' | 'stable';
   lessonSummaries: LessonQualitySummary[];
   shadowSummaries: ShadowWeekSummary[];
-  totalReflectionDepth: number; // avg across all reflections
+  totalReflectionDepth: number; // avg across all reflections in period
+  totalEntries: number; // total entries in period
   teacherCommentary: TeacherCommentary;
 }
 
@@ -54,10 +56,19 @@ export interface ChronicleEntry {
   isExpanded?: boolean;
 }
 
+export interface ChronicleCategoryGroup {
+  categoryKey: string;        // 'lesson:writing' | 'shadow:arrogance' | 'kingly_deed' | 'behavior:work'
+  label: string;              // '日课 · 习字'
+  icon: string;               // '🖌️'
+  entries: ChronicleEntry[];  // 该类目下所有条目
+  avgScore: number | null;    // 平均分
+}
+
 export interface ChronicleWeek {
   weekNumber: number;
   label: string; // "第 4 周"
   entries: ChronicleEntry[];
+  categoryGroups: ChronicleCategoryGroup[];
 }
 
 // ============ Pattern Insights ============
