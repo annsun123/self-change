@@ -71,12 +71,23 @@ export function ChronicleEntry({ entry, showDay = false }: ChronicleEntryProps) 
         <span className="text-stone-600 text-xs">{expanded ? '▲' : '▼'}</span>
       </div>
 
-      {/* Expanded reflection */}
-      {expanded && entry.reflection && (
-        <div className="px-4 py-3 pl-16 bg-stone-900/50 border-b border-stone-800/30">
-          <p className="text-stone-400 text-sm leading-relaxed whitespace-pre-wrap">
-            {entry.reflection}
-          </p>
+      {/* Expanded detail */}
+      {expanded && (
+        <div className="px-4 py-3 pl-16 bg-stone-900/50 border-b border-stone-800/30 space-y-3">
+          <div>
+            <p className="text-stone-500 text-xs mb-1">详情</p>
+            <p className="text-stone-300 text-sm leading-relaxed whitespace-pre-wrap break-words">
+              {entry.description || '（暂无描述）'}
+            </p>
+          </div>
+          {entry.reflection && entry.reflection !== entry.description && (
+            <div className="pt-2 border-t border-stone-800/50">
+              <p className="text-stone-500 text-xs mb-1">反思</p>
+              <p className="text-stone-400 text-sm leading-relaxed whitespace-pre-wrap break-words italic">
+                {entry.reflection}
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>

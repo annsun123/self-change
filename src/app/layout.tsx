@@ -42,7 +42,12 @@ export default function RootLayout({
       lang="zh-CN"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-stone-950 text-stone-100">
+      <body className="min-h-full flex flex-col bg-stone-950 text-stone-100" style={{
+        backgroundImage: "url('/images/uni/texture.png')",
+        backgroundRepeat: "repeat",
+        backgroundSize: "200px",
+        backgroundBlendMode: "overlay",
+      }}>
         {children}
         <PwaRegister />
       </body>

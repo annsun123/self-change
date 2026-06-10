@@ -49,12 +49,24 @@ const LESSON_QUESTIONS: Record<string, { teacher: 'shen' | 'xu'; question: (task
   },
 };
 
-type Step = 'question' | 'followup' | 'quality' | 'done';
+const FIVE_TASKS_MAP: Record<string, { name: string; emoji: string }> = {
+  reading: { name: '读书', emoji: '📜' },
+  writing: { name: '习字', emoji: '🖌️' },
+  service: { name: '劳作', emoji: '🪓' },
+  meditation: { name: '修心', emoji: '🪷' },
+  exercise: { name: '运动', emoji: '🚶' },
+};
+
+type Step = 'confirm' | 'question' | 'followup' | 'quality' | 'done';
+
+function getTaskEntryStep(task: ScheduleTask): Step {
+  return task.completed ? 'question' : 'confirm';
+}
 
 export function Round2Lessons({ context, state, onComplete, onExitEarly, onLessonFeedback, onLessonQuality }: Round2LessonsProps) {
-  const tasks = (context.todaySchedule?.tasks || []).filter((t) => t.completed);
+  const tasks = (context.todaySchedule?.tasks || []);
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
-  const [step, setStep] = useState<Step>(tasks.length === 0 ? 'done' : 'question');
+  const [step, setStep] = useState<Step>(tasks.length === 0 ? 'done' : getTaskEntryStep(tasks[0]));
   const [currentText, setCurrentText] = useState('');
   const [inputValue, setInputValue] = useState('');
   const [showFollowUp, setShowFollowUp] = useState(false);
@@ -146,8 +158,9 @@ export function Round2Lessons({ context, state, onComplete, onExitEarly, onLesso
 
   const moveToNextTask = () => {
     if (currentTaskIndex + 1 < tasks.length) {
-      setCurrentTaskIndex((prev) => prev + 1);
-      setStep('question');
+      const nextIndex = currentTaskIndex + 1;
+      setCurrentTaskIndex(nextIndex);
+      setStep(getTaskEntryStep(tasks[nextIndex]));
       setCurrentText('');
       setInputValue('');
       setShowFollowUp(false);
@@ -155,6 +168,21 @@ export function Round2Lessons({ context, state, onComplete, onExitEarly, onLesso
     } else {
       setStep('done');
     }
+  };
+
+  const handleSkipTask = () => {
+    // Mark as missed and move to next task
+    if (currentTask) {
+      setAllQualities((prev) => ({
+        ...prev,
+        [currentTask.type]: {
+          quality: 0,
+          reflection: '',
+          status: 'missed' as const,
+        },
+      }));
+    }
+    moveToNextTask();
   };
 
   const handleContinue = () => {
@@ -176,6 +204,41 @@ export function Round2Lessons({ context, state, onComplete, onExitEarly, onLesso
           <div className="text-4xl">📋</div>
           <p className="text-stone-500">功课已回顾。</p>
           <p className="text-stone-400 text-sm">进入下一轮。</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Confirm step — shown for uncompleted tasks before the teacher question
+  if (step === 'confirm') {
+    const taskConfig = FIVE_TASKS_MAP[currentTask?.type];
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8">
+        <div className="text-center space-y-6 max-w-lg w-full">
+          <div className="text-sm text-stone-500">
+            {currentTaskIndex + 1} / {tasks.length}
+          </div>
+          <div className="p-6 bg-stone-900/80 border border-stone-800 rounded-xl space-y-4">
+            <div className="flex items-center justify-center gap-3">
+              <span className="text-3xl">{taskConfig?.emoji || '📋'}</span>
+              <span className="text-xl text-stone-200">{taskConfig?.name || currentTask?.type}</span>
+            </div>
+            <p className="text-stone-400">晨间未标注完成，今日做了吗？</p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setStep('question')}
+              className="flex-1 py-4 bg-green-600/20 hover:bg-green-600/30 border border-green-600/30 rounded-lg text-green-400 font-medium transition-all"
+            >
+              ✅ 做了
+            </button>
+            <button
+              onClick={handleSkipTask}
+              className="flex-1 py-4 bg-stone-800 hover:bg-stone-700 border border-stone-700 rounded-lg text-stone-400 transition-all"
+            >
+              ❌ 没做
+            </button>
+          </div>
         </div>
       </div>
     );

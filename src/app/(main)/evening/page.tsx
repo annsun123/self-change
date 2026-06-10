@@ -465,6 +465,17 @@ export default function EveningPage() {
           console.error("day_records insert error:", insertErr);
           if (isAuthError(insertErr)) { router.push("/login"); return; }
         }
+
+        // Increment day_in_journey so next day gets the correct day_number
+        const nextDayNumber = (profile?.day_in_journey || 1) + 1;
+        const { error: profileUpdateErr } = await supabase
+          .from("profiles")
+          .update({ day_in_journey: nextDayNumber })
+          .eq("id", user.id);
+        if (profileUpdateErr) {
+          console.error("profile day_in_journey update error:", profileUpdateErr);
+          if (isAuthError(profileUpdateErr)) { router.push("/login"); return; }
+        }
       }
     } catch (err) {
       console.error("Settlement save failed:", err);
@@ -800,7 +811,17 @@ export default function EveningPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-stone-950 text-stone-100 relative overflow-hidden">
+    <div
+      className="min-h-screen flex flex-col bg-stone-950 text-stone-100 relative overflow-hidden"
+      style={{
+        backgroundImage: "url('/images/scenes/evening.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+      }}
+    >
+      {/* Dark overlay for readability */}
+      <div className="absolute inset-0 bg-stone-950/80 pointer-events-none" />
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-amber-900/10 to-transparent" />
       </div>

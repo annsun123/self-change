@@ -222,53 +222,55 @@ export default function ScrollMapPage() {
       {/* Main Content - 滚动地图 */}
       <main className="flex-1 flex flex-col items-center justify-center p-8">
         {/* 地图区域 */}
-        <div className="relative w-full max-w-lg aspect-[4/3] bg-stone-900/50 rounded-xl border border-stone-800 overflow-hidden flex items-center justify-center">
-          {/* 背景装饰 */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-stone-800/50 to-transparent" />
-          </div>
+        <div className="relative w-full max-w-lg aspect-[4/3] rounded-xl overflow-hidden border border-amber-800/30">
+          {/* Scroll map background image */}
+          <img
+            src="/images/scenes/scroll_map.png"
+            alt="卷轴地图"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          {/* Dark overlay for readability */}
+          <div className="absolute inset-0 bg-stone-950/60" />
 
           {/* 地图内容 */}
-          <div className="text-center space-y-6 z-10">
-            <div className="text-8xl">
-              {weather === "storm" ? "⛈️" : weather === "rainbow" ? "🌈" : "🗺️"}
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-serif text-amber-400">
-                第 {profile?.created_at
-  ? Math.max(1, Math.ceil((Date.now() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24)))
-  : 1} 天
-              </h2>
-              <div className="flex items-center justify-center gap-2">
-                <p className="text-stone-400 text-sm">
-                  {profile ? `当前位置：${profile.scroll_position.toLocaleString()}` : "Loading..."}
-                </p>
-                <button
-                  onClick={() => router.push('/assessment')}
-                  className="px-2 py-0.5 text-xs text-amber-400 border border-amber-600/30 hover:bg-amber-900/20 rounded transition-all"
-                >
-                  ⚔ 考核
-                </button>
-              </div>
-            </div>
-
+          <div className="relative z-10 text-center space-y-4 p-6">
             {/* 王子状态 + 旗帜 */}
-            <div className="flex items-center justify-center gap-4 pt-4">
-              <div className="text-4xl">👸</div>
-              {/* Goal Flag */}
+            <div className="flex flex-col items-center gap-2 pt-2">
+              <img
+                src="/images/characters/exiled-prince.png"
+                alt="流放王子"
+                className="w-16 h-16 object-cover rounded-full border-2 border-amber-500/40 shadow-lg"
+              />
               {todayGoal && (
-                <div className="text-2xl" title={todayGoal}>
+                <span className="text-2xl" title={todayGoal}>
                   {goalAchieved ? "🏁" : "🚩"}
-                </div>
+                </span>
               )}
-              <div className="text-left">
-                <p className="text-amber-300 text-sm">
+              <div>
+                <p className="text-amber-300 text-sm font-medium">
                   {profile?.nickname || profile?.username || "殿下"}
                 </p>
                 <p className="text-stone-500 text-xs">
                   距离王宫还有 {Math.max(0, TOTAL_STEPS - (profile?.scroll_position || 0)).toLocaleString()} 步
                 </p>
               </div>
+            </div>
+
+            {/* 天气 + 天数 + 位置 信息条 */}
+            <div className="flex items-center justify-center gap-3 text-stone-400 text-xs">
+              <span className="text-lg">{getWeatherEmoji(weather)}</span>
+              <span>
+                第 {profile?.created_at
+                  ? Math.max(1, Math.ceil((Date.now() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24)))
+                  : 1} 天
+              </span>
+              <span>{profile ? `当前位置: ${profile.scroll_position.toLocaleString()}` : ""}</span>
+              <button
+                onClick={() => router.push('/assessment')}
+                className="px-2 py-0.5 text-xs text-amber-400 border border-amber-600/30 hover:bg-amber-900/20 rounded transition-all"
+              >
+                ⚔ 考核
+              </button>
             </div>
 
             {/* 王德纹路可视化 - 当veinCount > 0时显示 */}
@@ -294,7 +296,7 @@ export default function ScrollMapPage() {
           </div>
 
           {/* 天气效果 */}
-          <div className="absolute top-4 right-4 text-2xl">
+          <div className="absolute top-4 right-4 text-2xl z-10">
             {weather === "clear" && <span className="animate-pulse">{getWeatherEmoji(weather)}</span>}
             {weather === "cloudy" && getWeatherEmoji(weather)}
             {weather === "storm" && <span className="animate-bounce">{getWeatherEmoji(weather)}</span>}
@@ -303,10 +305,18 @@ export default function ScrollMapPage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-3 gap-4 pt-8 w-full max-w-lg">
+        {/* Decorative divider */}
+        <div className="w-full max-w-lg pt-6">
+          <img
+            src="/images/uni/divider.png"
+            alt=""
+            className="w-full h-4 object-contain opacity-50"
+          />
+        </div>
+        <div className="grid grid-cols-3 gap-4 pt-4 w-full max-w-lg">
           <button
             onClick={() => router.push("/morning")}
-            className="p-6 bg-stone-900 hover:bg-stone-800 border border-stone-800 hover:border-amber-600/30 rounded-lg transition-all"
+            className="p-6 bg-stone-900/80 hover:bg-stone-800 border border-stone-800 hover:border-amber-600/30 rounded-lg transition-all backdrop-blur-sm"
           >
             <div className="text-3xl mb-2">☀️</div>
             <div className="text-amber-400 font-medium">晨间规划</div>
@@ -314,7 +324,7 @@ export default function ScrollMapPage() {
           </button>
           <button
             onClick={() => router.push("/evening")}
-            className="p-6 bg-stone-900 hover:bg-stone-800 border border-stone-800 hover:border-amber-600/30 rounded-lg transition-all"
+            className="p-6 bg-stone-900/80 hover:bg-stone-800 border border-stone-800 hover:border-amber-600/30 rounded-lg transition-all backdrop-blur-sm"
           >
             <div className="text-3xl mb-2">🌙</div>
             <div className="text-amber-400 font-medium">晚间对话</div>
@@ -322,7 +332,7 @@ export default function ScrollMapPage() {
           </button>
           <button
             onClick={() => setShowScheduleModal(true)}
-            className="p-6 bg-stone-900 hover:bg-stone-800 border border-stone-800 hover:border-amber-600/30 rounded-lg transition-all"
+            className="p-6 bg-stone-900/80 hover:bg-stone-800 border border-stone-800 hover:border-amber-600/30 rounded-lg transition-all backdrop-blur-sm"
           >
             <div className="text-3xl mb-2">📋</div>
             <div className="text-amber-400 font-medium">今日日程</div>

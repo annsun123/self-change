@@ -266,7 +266,18 @@ export default function ShadowHallPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-100">
+    <div
+      className="min-h-screen bg-stone-950 text-stone-100"
+      style={{
+        backgroundImage: "url('/images/scenes/shadow_hall.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+      }}
+    >
+      {/* Dark overlay for readability */}
+      <div className="fixed inset-0 bg-stone-950/85 pointer-events-none z-0" />
+      <div className="relative z-10">
       {/* Header */}
       <header className="p-4 border-b border-stone-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -435,6 +446,7 @@ export default function ShadowHallPage() {
           onClose={() => setRatingShadow(null)}
         />
       )}
+      </div>{/* close relative z-10 wrapper */}
     </div>
   );
 }

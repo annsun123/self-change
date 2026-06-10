@@ -97,8 +97,25 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-stone-950 text-stone-100">
-      <div className="w-full max-w-md p-8 space-y-6">
+    <div
+      className="min-h-screen flex items-center justify-center bg-stone-950 text-stone-100 relative"
+      style={{
+        backgroundImage: "url('/images/app/启动页.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      {/* Overlay for readability */}
+      <div className="absolute inset-0 bg-stone-950/70" />
+      <div className="w-full max-w-md p-8 space-y-6 relative z-10">
+        {/* Prince illustration */}
+        <div className="flex justify-center">
+          <img
+            src="/images/characters/exiled-prince.png"
+            alt="流放王子"
+            className="w-32 h-32 object-cover rounded-full border-2 border-amber-600/40 shadow-lg shadow-amber-900/20"
+          />
+        </div>
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-serif text-amber-400">自我改变</h1>
           <p className="text-stone-400 text-sm">流放王子归乡之旅</p>

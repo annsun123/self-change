@@ -144,3 +144,14 @@
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
 }
+
+/* Section divider using the hand-drawn dancheong pattern */
+.section-divider {
+  background-image: url('/images/uni/divider.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  height: 24px;
+  width: 100%;
+  opacity: 0.5;
+}

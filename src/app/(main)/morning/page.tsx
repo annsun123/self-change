@@ -414,7 +414,18 @@ export default function MorningPage() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-100 flex flex-col">
+    <div
+      className="min-h-screen bg-stone-950 text-stone-100 flex flex-col"
+      style={{
+        backgroundImage: "url('/images/scenes/morning.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+      }}
+    >
+      {/* Dark overlay for readability */}
+      <div className="fixed inset-0 bg-stone-950/75 pointer-events-none z-0" />
+      <div className="relative z-10 flex flex-col min-h-screen">
       {/* Header */}
       <header className="p-4 border-b border-stone-800 flex items-center justify-between">
         <button
@@ -606,9 +617,16 @@ export default function MorningPage() {
               </div>
 
               {/* Shen Xiansheng's word */}
-              <div className="p-4 bg-stone-900/50 border border-stone-800 rounded-lg text-center">
-                <p className="text-amber-400/80 text-sm italic">「{generateShenComment()}」</p>
-                <p className="text-stone-600 text-xs mt-1">—— 申先生</p>
+              <div className="p-4 bg-stone-900/50 border border-stone-800 rounded-lg text-center space-y-3">
+                <img
+                  src="/images/characters/shen-xiansheng.png"
+                  alt="申先生"
+                  className="w-14 h-14 object-cover rounded-full border border-amber-600/30 mx-auto"
+                />
+                <div>
+                  <p className="text-amber-400/80 text-sm italic">「{generateShenComment()}」</p>
+                  <p className="text-stone-600 text-xs mt-1">—— 申先生</p>
+                </div>
               </div>
 
               <button
@@ -636,6 +654,7 @@ export default function MorningPage() {
         </div>
         )}
       </main>
+      </div>{/* close relative z-10 wrapper */}
     </div>
   );
 }

@@ -45,19 +45,19 @@ export default function BehaviorAnalysisPage() {
           .eq('id', user.id)
           .single();
 
-      // Load day records (last 30 days)
+      // Load day records (last 30 days by calendar date)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const { data: dayRecords, error: dayError } = await supabase
         .from('day_records')
         .select('*')
         .eq('user_id', user.id)
-        .order('day_number', { ascending: true })
-        .limit(30);
+        .gte('calendar_date', thirtyDaysAgo.toISOString().split('T')[0])
+        .order('day_number', { ascending: true });
 
       if (dayError) console.error('day_records load error:', dayError);
 
       // Load shadow records (last 30 days)
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const { data: shadowRecords, error: shadowError } = await supabase
         .from('shadow_records')
         .select('*')
@@ -243,6 +243,8 @@ export default function BehaviorAnalysisPage() {
         </div>
       </header>
 
+      {/* Section divider */}
+      <div className="section-divider opacity-40" />
       <main className="p-4 space-y-6 pb-20">
         {activeTab === 'compass' && compass && (
           <BehaviorCompass

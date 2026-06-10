@@ -25,7 +25,13 @@ export function TeacherOpening({ context, onChoice }: TeacherOpeningProps) {
         <p className="text-stone-500 text-sm italic">{sceneDescription}</p>
         {/* Teacher avatar */}
         <div className="space-y-2">
-          <div className="text-6xl mb-4">{opening.teacher === 'shen' ? '👨‍🏫' : '👩‍🏫'}</div>
+          <div className="flex justify-center">
+            <img
+              src={opening.teacher === 'shen' ? '/images/characters/shen-xiansheng.png' : '/images/characters/xu-niangzi.png'}
+              alt={opening.teacher === 'shen' ? '申先生' : '徐娘子'}
+              className="w-32 h-32 object-cover rounded-full border-2 border-amber-600/30 shadow-lg shadow-amber-900/20"
+            />
+          </div>
           <p className="text-amber-400 font-medium text-lg">
             {opening.teacher === 'shen' ? '申先生' : '徐娘子'}
           </p>
