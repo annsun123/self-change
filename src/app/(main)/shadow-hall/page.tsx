@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Shadow, ShadowRecord } from "@/types/database";
@@ -11,6 +11,14 @@ import { Plus, ChevronRight } from "lucide-react";
 type ViewState = 'list' | 'log';
 
 export default function ShadowHallPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-stone-950 flex items-center justify-center"><div className="text-amber-400 animate-pulse">加载中...</div></div>}>
+      <ShadowHallContent />
+    </Suspense>
+  );
+}
+
+function ShadowHallContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("returnTo");
