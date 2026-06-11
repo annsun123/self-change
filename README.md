@@ -1,36 +1,183 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏯 自我改变 · Self-Change
 
-## Getting Started
+> *"你站在城门外，回首望去，那是你再也回不去的家。除非……你不再是那个被赶出来的人。"*
+><img width="575" height="471" alt="image" src="https://github.com/user-attachments/assets/80260656-9899-481f-a890-29c9f48d50b0" />
 
-First, run the development server:
+> 
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+**自我改变** 不是又一个习惯打卡 App。
+
+它是一个以**朝鲜王朝流放王子归乡**为叙事背景的**性格重塑**工具。在这里，你不追踪「今天有没有跑步」，你追踪的是——**「今天我有没有看见自己的傲慢？我有没有在自私冒头的那一刻，选择了不同的反应？」**
+
+---
+<img width="652" height="472" alt="image" src="https://github.com/user-attachments/assets/a96d3531-e12e-497d-a9e1-82c910c5cc07" />
+
+## 💡这是一个自我提升 App？
+
+
+## 🏯 世界观
+
+> **朝鲜王朝时期。**
+> 你本是浪荡悖逆的王二代，挥霍家产、堕落谋逆，被驱逐出王宫。
+> **你要踏上回去的路。**
+> 但只有通过真正的改变，得到父王、母后和王臣们的认可，才能重返宫中。
+
+| 现实世界 | 游戏化叙事 |
+|---|---|
+| 我想要改变 | 我想回家 🏛️ |
+| 我的性格缺陷 | 我身上的「阴影」👹 |
+| 我觉察到缺陷的那一刻 | 我看见了阴影的痕迹 🔍 |
+| 我选择了不同的反应 | 我击碎了阴影一角 ⚔️ |
+| 我在进步 | 我离家更近了 🗺️ |
+| 我退步了 | 路变远了，但我没有回到起点 🌧️ |
+| 我真正改变了 | 父王母后召我回宫 👑 |
+
+### 你的两位老师
+
+| | 申先生 👨‍🏫 | 徐娘子 👩‍🏫 |
+|---|---|---|
+| **身份** | 前朝大学士，直言被贬 | 前王子宫廷女官 |
+| **性格** | 严肃深沉，言简意赅 | 温柔犀利，一眼看穿 |
+| **管什么** | 「道」——你应该做什么 | 「心」——你为什么这么做 |
+
+每天晚间，两位老师会坐在茅屋的烛火下等你回来，一边煮茶，一边聊你今天做了什么。
+
+---
+
+## 👹 核心机制
+
+### 阴影系统 —— 你的性格缺陷
+
+你的性格缺陷被具象化为**阴影敌人**，每个都有自己的 HP：
+
+- **逆星** 🛡️（HP 7/7）—— 高傲之盾。自视甚高、不服任何人、听不进劝
+- **毒疮** 🔒（HP 7/7）—— 自私之锁。从内腐烂，安静地蚕食你的仁心
+
+每当你觉察到一次、做出不同选择 → HP **−1**。长期忽略或犯错 → HP **+1**。
+HP 归零 → 阴影破碎 → 获得一件**文物奖励**（如「谦逊之玉」「仁王冠冕」）。
+
+> 阴影不会永久消失。每次被击碎后会复活（HP 递减：7→5→3），但你越来越强，它越来越弱。**就像性格缺陷永远不会被完全消除，只是被你驯服了。**
+
+### 王德系统 —— 你的正向积累
+
+击碎阴影是「不做错的事」，但成为王储还需要「做对的事」。
+
+每当你做了一件配得上王储身份的事（包容他人、主动帮助、承认错误……），你的王子形象上会出现一道**金色纹路**。纹路从脚底向上蔓延，直到全身发出柔和的光芒——**这就是你理想中的自己** ✨
+
+
+
+
+## 🔄 每日循环
+
+```
+☀️ 晨间仪式 (2-3分钟)
+   老师一句今日功课，说完就放你走
+        ↓
+🌤 白天 (App 几乎隐身)
+   不留你——改变不是在手机上发生的，是在真实生活里
+        ↓
+🌙 晚间对话 (5-9分钟) ← 核心
+   烛火下师徒对谈：今天你看见了什么？怎么做的？
+        ↓
+📊 结算 (15秒)
+   不显示百分比，只看方格和颜色
+        ↓
+🏮 晚安
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🔧 技术栈
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| 层 | 技术 |
+|---|---|
+| **前端/后端** | Next.js 16 (App Router) |
+| **语言** | TypeScript |
+| **样式** | Tailwind CSS v4 + shadcn/ui |
+| **数据库/认证** | Supabase |
+| **状态管理** | Zustand + SWR |
+| **对话引擎** | 预设计的 JSON 状态机对话树（MVP 阶段不调用 AI API） |
+| **部署** | Vercel |
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🚀 快速开始
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# 克隆项目
+git clone <repo-url>
+cd self-change
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# 安装依赖
+npm install
 
-## Deploy on Vercel
+# 启动开发服务器
+npm run dev
+# 打开 http://localhost:3000
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📖 更多文档
+
+- [`app-design.md`](../app-design.md) — 完整设计文档：哲学理念、四阶段旅程、阴影/王德系统、每日循环、技术选型
+- [`app-design-dialogue.md`](../app-design-dialogue.md) — AI 对话树完整设计（申先生 & 徐娘子）
+- [`CLAUDE.md`](./CLAUDE.md) — 开发指南
+
+---
+
+## 🧭 路线图
+
+### MVP（进行中）
+- [ ] 第 0 天初遇对话
+- [ ] 晨间仪式 + 晚间对话
+- [ ] 逆星 HP 追踪
+- [ ] 王德计数
+- [ ] 山水卷轴地图
+- [ ] Supabase 用户认证
+
+### 后续计划
+- [ ] 毒疮（第二个阴影）
+- [ ] 午后驿站
+- [ ] 大臣密报事件
+- [ ] AI 自适应对话（接入 Claude API）
+- [ ] 移动端 App
+
+---
+
+## 👥 贡献
+
+这是一个始于个人需求的独立项目。如果你对这个理念感兴趣，欢迎提 Issue 或 PR。
+
+
+接下来也许会完善的事情
+## 🧭 四阶段旅程
+
+你的每一次觉察和改变，都会让王子在山水卷轴地图上向前走一步。
+
+### 第一阶段 · 流放之醒
+> 你被逐出宫门，流落荒野。一位隐居的老学者收留了你。你必须正视自己的过错，看清自己的阴影。
+
+**核心任务：照镜子。**不求改变，只求看见。
+
+### 第二阶段 · 修身养德
+> 老师给了你一卷竹简。"想改变？先把这些背下来。"
+
+**核心任务：练习暂停。**在脱口而出之前，先数三下。
+
+### 第三阶段 · 考验之路
+> 有一天，一位从汉阳来的官员出现在村口。老师低声说："那是父王的人。"
+
+**核心任务：切换反应。**从暂停→尝试用新的方式回应。大臣的密报直接影响回家进度。
+
+### 第四阶段 · 归乡登基
+> 一道诏书从汉阳送来。父王召你回宫。但真正的考验刚刚开始……
+
+**核心任务：教别人。**你的阴影被驯服了，现在你要帮助他人改变。
+
+---
+
+**日均总计约 8-12 分钟。**周末有「大臣密报」和「回顾前瞻」特殊事件。
+
+---
+
+Made with ❤️ by Ann  始于 2026-05-06
