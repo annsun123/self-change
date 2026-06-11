@@ -56,7 +56,7 @@ export const FIVE_TASKS = [
   },
   {
     type: 'meditation' as const,
-    emoji: '🧘',
+    emoji: '❤️',
     name: '修心',
     description: '静坐暂停，觉察当下',
     placeholder: '记录今日感悟',

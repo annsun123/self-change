@@ -20,7 +20,7 @@ const LESSON_META: Record<string, { label: string; emoji: string }> = {
   reading: { label: '读书', emoji: '📜' },
   writing: { label: '习字', emoji: '🖌️' },
   service: { label: '劳作', emoji: '🪓' },
-  meditation: { label: '修心', emoji: '🪷' },
+  meditation: { label: '修心', emoji: '❤️' },
   exercise: { label: '运动', emoji: '🚶' },
 };
 
@@ -665,10 +665,10 @@ const CATEGORY_LABELS: Record<string, { label: string; icon: string }> = {
   'lesson:reading': { label: '日课 · 读书', icon: '📜' },
   'lesson:writing': { label: '日课 · 习字', icon: '🖌️' },
   'lesson:service': { label: '日课 · 劳作', icon: '🪓' },
-  'lesson:meditation': { label: '日课 · 修心', icon: '🪷' },
+  'lesson:meditation': { label: '日课 · 修心', icon: '❤️' },
   'lesson:exercise': { label: '日课 · 运动', icon: '🚶' },
   // 冥想
-  'meditation:meditation': { label: '修心 · 冥想', icon: '🧘' },
+  'meditation:meditation': { label: '修心 · 冥想', icon: '❤️' },
   // 阴影
   'shadow:arrogance': { label: '阴影 · 逆星', icon: '⚡' },
   'shadow:selfishness': { label: '阴影 · 毒疮', icon: '🕳️' },

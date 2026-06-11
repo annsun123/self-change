@@ -256,7 +256,7 @@ export default function MorningPage() {
       <div
         key={taskKey}
         className={`p-4 rounded-lg border transition-all ${
-          task.enabled ? 'border-stone-700 bg-stone-900/50' : 'border-stone-800 bg-stone-900/20 opacity-60'
+          task.enabled ? 'border-amber-700/40 bg-stone-800' : 'border-stone-600 bg-stone-800/80'
         }`}
       >
         <div className="flex items-center gap-3 mb-3">
@@ -288,9 +288,9 @@ export default function MorningPage() {
                 meditation: { ...prev.meditation, meditationContent: e.target.value }
               }))}
               placeholder="此刻我在想什么？（自由书写）"
-              className="w-full h-24 p-3 bg-stone-800 border border-stone-700 rounded-lg text-stone-200 placeholder-stone-500 resize-none focus:outline-none focus:border-amber-600"
+              className="w-full h-24 p-3 bg-stone-800 border border-stone-600 rounded-lg text-stone-200 placeholder-stone-400 resize-none focus:outline-none focus:border-amber-600"
             />
-            <div className="flex items-center gap-2 text-stone-400 text-xs">
+            <div className="flex items-center gap-2 text-stone-300 text-xs">
               <span>💡</span>
               <span>引导问题（随机显示）：今天有什么事让你心乱？</span>
             </div>
@@ -302,7 +302,7 @@ export default function MorningPage() {
               value={task.content}
               onChange={(e) => handleTaskContentChange(taskKey, e.target.value)}
               placeholder={taskConfig.placeholder}
-              className="w-full p-3 mb-3 bg-stone-800 border border-stone-700 rounded-lg text-stone-200 placeholder-stone-500 focus:outline-none focus:border-amber-600"
+              className="w-full p-3 mb-3 bg-stone-800 border border-stone-600 rounded-lg text-stone-200 placeholder-stone-400 focus:outline-none focus:border-amber-600"
             />
 
             {/* Options for writing task */}
@@ -319,7 +319,7 @@ export default function MorningPage() {
                       className={`px-3 py-1 text-xs rounded border transition-all ${
                         task.content === opt
                           ? 'border-amber-500 bg-amber-900/20 text-amber-400'
-                          : 'border-stone-700 text-stone-500 hover:border-stone-600'
+                          : 'border-stone-600 text-stone-300 hover:border-stone-500'
                       }`}
                     >
                       {opt}
@@ -343,7 +343,7 @@ export default function MorningPage() {
                       className={`px-3 py-1 text-xs rounded border transition-all ${
                         task.content === opt
                           ? 'border-amber-500 bg-amber-900/20 text-amber-400'
-                          : 'border-stone-700 text-stone-500 hover:border-stone-600'
+                          : 'border-stone-600 text-stone-300 hover:border-stone-500'
                       }`}
                     >
                       {opt}
@@ -367,7 +367,7 @@ export default function MorningPage() {
                       className={`px-3 py-1 text-xs rounded border transition-all ${
                         task.duration === d
                           ? 'border-amber-500 bg-amber-900/20 text-amber-400'
-                          : 'border-stone-700 text-stone-500 hover:border-stone-600'
+                          : 'border-stone-600 text-stone-300 hover:border-stone-500'
                       }`}
                     >
                       {d}
@@ -379,29 +379,29 @@ export default function MorningPage() {
 
             {/* Time inputs */}
             <div className="flex gap-2 items-center text-sm">
-              <span className="text-stone-500">时间:</span>
+              <span className="text-stone-300">时间:</span>
               <input
                 type="time"
                 value={task.startTime}
                 onChange={(e) => handleTaskTimeChange(taskKey, 'startTime', e.target.value)}
-                className="px-2 py-1 bg-stone-800 border border-stone-700 rounded text-stone-200 focus:outline-none focus:border-amber-600"
+                className="px-2 py-1 bg-stone-800 border border-stone-600 rounded text-stone-200 focus:outline-none focus:border-amber-600"
               />
-              <span className="text-stone-500">至</span>
+              <span className="text-stone-300">至</span>
               <input
                 type="time"
                 value={task.endTime}
                 onChange={(e) => handleTaskTimeChange(taskKey, 'endTime', e.target.value)}
-                className="px-2 py-1 bg-stone-800 border border-stone-700 rounded text-stone-200 focus:outline-none focus:border-amber-600"
+                className="px-2 py-1 bg-stone-800 border border-stone-600 rounded text-stone-200 focus:outline-none focus:border-amber-600"
               />
             </div>
 
             {/* Encouragement for service task */}
             {isServiceTask && (
-              <div className="mt-3 p-3 bg-stone-800/50 rounded border border-stone-800">
-                <p className="text-stone-400 text-sm italic">「{encouragement}」</p>
+              <div className="mt-3 p-3 bg-stone-800 rounded border border-stone-600">
+                <p className="text-stone-200 text-sm italic">「{encouragement}」</p>
                 <button
                   onClick={handleRefreshEncouragement}
-                  className="mt-1 text-xs text-stone-500 hover:text-stone-300"
+                  className="mt-1 text-xs text-stone-400 hover:text-stone-200"
                 >
                   🔄 换一句
                 </button>
@@ -424,18 +424,18 @@ export default function MorningPage() {
       }}
     >
       {/* Dark overlay for readability */}
-      <div className="fixed inset-0 bg-stone-950/75 pointer-events-none z-0" />
+      <div className="fixed inset-0 bg-stone-950/65 pointer-events-none z-0" />
       <div className="relative z-10 flex flex-col min-h-screen">
       {/* Header */}
       <header className="p-4 border-b border-stone-800 flex items-center justify-between">
         <button
           onClick={() => router.push('/scroll-map')}
-          className="text-lg text-stone-500 hover:text-amber-400"
+          className="text-lg text-stone-400 hover:text-amber-400"
           title="返回主界面"
         >
           🏠
         </button>
-        <span className="text-amber-500/60 text-xs">☀️ 晨间规划</span>
+        <span className="text-amber-400/90 text-xs">☀️ 晨间规划</span>
         <div className="w-8" /> {/* Spacer for alignment */}
       </header>
 
@@ -444,7 +444,7 @@ export default function MorningPage() {
         {isLoading ? (
           <div className="text-center space-y-4">
             <div className="text-4xl animate-pulse">⏳</div>
-            <p className="text-stone-400">加载中...</p>
+            <p className="text-stone-300">加载中...</p>
           </div>
         ) : (
         <div className="w-full max-w-lg space-y-6 relative z-10">
@@ -455,7 +455,7 @@ export default function MorningPage() {
               <div className="text-center">
                 <div className="text-4xl mb-3">🚩</div>
                 <h2 className="text-xl font-serif text-amber-400">今日目标</h2>
-                <p className="text-stone-500 text-sm mt-1">今天我想成为这样的人</p>
+                <p className="text-stone-300 text-sm mt-1">今天我想成为这样的人</p>
               </div>
 
               <div className="space-y-4">
@@ -465,12 +465,12 @@ export default function MorningPage() {
                     value={goalText}
                     onChange={(e) => setGoalText(e.target.value)}
                     placeholder="例：今天我要打败逆星，主动承认错误"
-                    className="w-full p-4 bg-stone-900/50 border border-stone-800 rounded-lg text-stone-200 placeholder-stone-500 focus:outline-none focus:border-amber-600 text-center"
+                    className="w-full p-4 bg-stone-800 border border-stone-600 rounded-lg text-stone-200 placeholder-stone-400 focus:outline-none focus:border-amber-600 text-center"
                   />
                 </div>
 
                 <div>
-                  <p className="text-stone-500 text-sm mb-2">关联阴影（可选）</p>
+                  <p className="text-stone-300 text-sm mb-2">关联阴影（可选）</p>
                   <div className="flex gap-3 justify-center">
                     {(['arrogance', 'selfishness'] as const).map((shadow) => (
                       <button
@@ -478,8 +478,8 @@ export default function MorningPage() {
                         onClick={() => setGoalShadow(goalShadow === shadow ? null : shadow)}
                         className={`px-4 py-2 rounded border transition-all ${
                           goalShadow === shadow
-                            ? 'border-amber-500 bg-amber-900/20 text-amber-400'
-                            : 'border-stone-700 text-stone-400 hover:border-stone-600'
+                            ? 'border-amber-500 bg-amber-900/30 text-amber-400'
+                            : 'border-stone-600 text-stone-200 hover:border-stone-500'
                         }`}
                       >
                         {shadow === 'arrogance' ? '逆星（高傲）' : '毒疮（自私）'}
@@ -494,14 +494,14 @@ export default function MorningPage() {
                     value={goalReward}
                     onChange={(e) => setGoalReward(e.target.value)}
                     placeholder="如果成功完成，给自己一个小奖励（可选）"
-                    className="w-full p-3 bg-stone-900/30 border border-stone-800 rounded-lg text-stone-300 placeholder-stone-600 focus:outline-none focus:border-amber-600 text-sm"
+                    className="w-full p-3 bg-stone-800 border border-stone-600 rounded-lg text-stone-200 placeholder-stone-400 focus:outline-none focus:border-amber-600 text-sm"
                   />
                 </div>
               </div>
 
               <button
                 onClick={handleNextFromGoal}
-                className="w-full py-4 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-600/30 rounded-lg text-amber-400 transition-all"
+                className="w-full py-4 bg-emerald-950 hover:bg-emerald-900 border border-emerald-700 rounded-lg text-emerald-400 transition-all"
               >
                 编排功课 →
               </button>
@@ -513,7 +513,7 @@ export default function MorningPage() {
             <div className="space-y-6 animate-fade-in">
               <div className="text-center">
                 <h2 className="text-xl font-serif text-amber-400">编排功课</h2>
-                <p className="text-stone-500 text-sm mt-1">从五门功课中选择今日要做的</p>
+                <p className="text-stone-300 text-sm mt-1">从五门功课中选择今日要做的</p>
               </div>
 
               {/* Service task - always visible */}
@@ -521,7 +521,7 @@ export default function MorningPage() {
 
               {/* Other tasks - collapsible */}
               <details className="group">
-                <summary className="flex items-center gap-2 p-3 cursor-pointer text-stone-500 hover:text-stone-300">
+                <summary className="flex items-center gap-2 p-3 cursor-pointer text-stone-300 hover:text-stone-200">
                   <span>▼</span>
                   <span>其他功课</span>
                 </summary>
@@ -535,7 +535,7 @@ export default function MorningPage() {
 
               <button
                 onClick={() => setStep('preview')}
-                className="w-full py-4 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-600/30 rounded-lg text-amber-400 transition-all"
+                className="w-full py-4 bg-emerald-950 hover:bg-emerald-900 border border-emerald-700 rounded-lg text-emerald-400 transition-all"
               >
                 预览日程 →
               </button>
@@ -548,23 +548,23 @@ export default function MorningPage() {
               <div className="text-center">
                 <div className="text-4xl mb-3">📋</div>
                 <h2 className="text-xl font-serif text-amber-400">王子一日的规划</h2>
-                <p className="text-stone-500 text-sm mt-1">
+                <p className="text-stone-300 text-sm mt-1">
                   {new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
                 </p>
               </div>
 
               {/* Goal summary with completion marking */}
               {goalText && (
-                <div className="p-4 bg-amber-900/10 border border-amber-800/30 rounded-lg">
+                <div className="p-4 bg-amber-900/50 border border-amber-800/60 rounded-lg">
                   <div className="flex items-center justify-between">
-                    <p className="text-stone-400 text-sm">🚩 今日目标</p>
+                    <p className="text-stone-200 text-sm">🚩 今日目标</p>
                     <div className="flex gap-2">
                       <button
                         onClick={() => setGoalCompleted(true)}
                         className={`px-3 py-1 text-xs rounded border transition-all ${
                           goalCompleted === true
                             ? 'border-green-500 bg-green-900/20 text-green-400'
-                            : 'border-stone-600 text-stone-500 hover:border-green-600'
+                            : 'border-stone-500 text-stone-300 hover:border-green-600'
                         }`}
                       >
                         ✅ 完成
@@ -574,7 +574,7 @@ export default function MorningPage() {
                         className={`px-3 py-1 text-xs rounded border transition-all ${
                           goalCompleted === false
                             ? 'border-red-500 bg-red-900/20 text-red-400'
-                            : 'border-stone-600 text-stone-500 hover:border-red-600'
+                            : 'border-stone-500 text-stone-300 hover:border-red-500'
                         }`}
                       >
                         ❌ 未完成
@@ -583,7 +583,7 @@ export default function MorningPage() {
                   </div>
                   <p className="text-amber-300 mt-1">{goalText}</p>
                   {goalShadow && (
-                    <p className="text-stone-500 text-xs mt-1">
+                    <p className="text-stone-300 text-xs mt-1">
                       关联阴影：{goalShadow === 'arrogance' ? '逆星（高傲）' : '毒疮（自私）'}
                     </p>
                   )}
@@ -594,17 +594,17 @@ export default function MorningPage() {
               <div className="space-y-4">
                 {Object.entries(tasksByPeriod).map(([period, periodTasks]) => (
                   <div key={period}>
-                    <p className="text-stone-500 text-sm mb-2">-- {period} --</p>
+                    <p className="text-stone-300 text-sm mb-2">-- {period} --</p>
                     {periodTasks.map((task, i) => {
                       const taskConfig = FIVE_TASKS.find(t => t.type === task.type);
                       return (
-                        <div key={i} className="p-3 bg-stone-900/30 border border-stone-800/50 rounded mb-2">
+                        <div key={i} className="p-3 bg-stone-900 border border-stone-600 rounded mb-2">
                           <div className="flex items-center gap-2">
                             <span className="text-lg">{taskConfig?.emoji}</span>
-                            <span className="text-stone-300">{task.content || taskConfig?.name}</span>
+                            <span className="text-stone-200">{task.content || taskConfig?.name}</span>
                           </div>
                           {task.start_time && (
-                            <p className="text-stone-500 text-xs mt-1">
+                            <p className="text-stone-300 text-xs mt-1">
                               {task.start_time}{task.end_time ? ` ~ ${task.end_time}` : ''}
                               {task.duration ? ` · ${task.duration}分钟` : ''}
                             </p>
@@ -617,7 +617,7 @@ export default function MorningPage() {
               </div>
 
               {/* Shen Xiansheng's word */}
-              <div className="p-4 bg-stone-900/50 border border-stone-800 rounded-lg text-center space-y-3">
+              <div className="p-4 bg-stone-900 border border-stone-600 rounded-lg text-center space-y-3">
                 <img
                   src="/images/characters/shen-xiansheng.png"
                   alt="申先生"
@@ -625,14 +625,14 @@ export default function MorningPage() {
                 />
                 <div>
                   <p className="text-amber-400/80 text-sm italic">「{generateShenComment()}」</p>
-                  <p className="text-stone-600 text-xs mt-1">—— 申先生</p>
+                  <p className="text-stone-400 text-xs mt-1">—— 申先生</p>
                 </div>
               </div>
 
               <button
                 onClick={handleConfirmSchedule}
                 disabled={saving}
-                className="w-full py-4 bg-amber-600 hover:bg-amber-500 disabled:bg-stone-700 rounded-lg text-stone-100 font-medium transition-all"
+                className="w-full py-4 bg-emerald-700 hover:bg-emerald-600 disabled:bg-stone-700 rounded-lg text-stone-100 font-medium transition-all"
               >
                 {saving ? '保存中...' : '确认今日规划'}
               </button>
@@ -647,8 +647,8 @@ export default function MorningPage() {
             <div className="text-center space-y-6 animate-fade-in">
               <div className="text-6xl">✨</div>
               <h3 className="text-xl font-serif text-amber-400">规划已记录</h3>
-              <p className="text-stone-400">今日修五门，明日成一人。</p>
-              <p className="text-stone-500 text-sm animate-pulse">返回主界面...</p>
+              <p className="text-stone-200">今日修五门，明日成一人。</p>
+              <p className="text-stone-300 text-sm animate-pulse">返回主界面...</p>
             </div>
           )}
         </div>

@@ -53,7 +53,7 @@ const FIVE_TASKS_MAP: Record<string, { name: string; emoji: string }> = {
   reading: { name: '读书', emoji: '📜' },
   writing: { name: '习字', emoji: '🖌️' },
   service: { name: '劳作', emoji: '🪓' },
-  meditation: { name: '修心', emoji: '🪷' },
+  meditation: { name: '修心', emoji: '❤️' },
   exercise: { name: '运动', emoji: '🚶' },
 };
 

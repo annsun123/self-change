@@ -202,7 +202,7 @@ export const DAILY_TASKS = [
   },
   {
     category: "meditation",
-    emoji: "🧘",
+    emoji: "❤️",
     name: "修心",
     description: "静坐暂停，觉察当下",
     shadowTarget: "arrogance" as ShadowType,

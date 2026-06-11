@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Shadow, ShadowRecord } from "@/types/database";
 import { ShadowSelfRatingCard } from "@/components/shadow-hall/self-rating-card";
@@ -12,6 +12,8 @@ type ViewState = 'list' | 'log';
 
 export default function ShadowHallPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("returnTo");
   const supabase = createClient();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [activeShadows, setActiveShadows] = useState<Shadow[]>([]);
@@ -281,14 +283,26 @@ export default function ShadowHallPage() {
       {/* Header */}
       <header className="p-4 border-b border-stone-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.push('/scroll-map')} className="text-stone-500 hover:text-stone-300">
-            ← 返回
+          <button
+            onClick={() => router.push(returnTo || '/scroll-map')}
+            className="text-stone-500 hover:text-stone-300"
+          >
+            ← {returnTo ? '回到晚间对话' : '返回'}
           </button>
-          <h1 className="text-xl font-serif text-amber-400">🏯 阴影阁</h1>
+          <h1 className="text-xl font-serif text-amber-400">
+            {returnTo ? '⚔️ 记录今日战况' : '🏯 阴影阁'}
+          </h1>
         </div>
       </header>
 
       <main className="p-4 space-y-6">
+        {/* Contextual subtitle when coming from evening */}
+        {returnTo && (
+          <p className="text-stone-400 text-sm text-center">
+            晚间对话前，记录今日与阴影的交手
+          </p>
+        )}
+
         {/* Active Shadows */}
         <section>
           <h2 className="text-sm text-stone-500 mb-3">🟢 当前战斗中的阴影</h2>
@@ -434,6 +448,18 @@ export default function ShadowHallPage() {
                 取消
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Return to evening button */}
+        {returnTo && (
+          <div className="pt-4 border-t border-stone-800">
+            <button
+              onClick={() => router.push(returnTo)}
+              className="w-full py-4 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-stone-100 font-medium transition-all"
+            >
+              ✓ 全部记录完毕，回到晚间对话
+            </button>
           </div>
         )}
       </main>

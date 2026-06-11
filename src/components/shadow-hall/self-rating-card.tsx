@@ -15,6 +15,7 @@ interface ShadowSelfRatingCardProps {
   onClose: () => void;
 }
 
+// Trigger context tags (shared for both shadows)
 const TRIGGER_TAG_OPTIONS = [
   { value: '与人交谈', label: '与人交谈', emoji: '🗣️' },
   { value: '工作中', label: '工作中', emoji: '💼' },
@@ -43,6 +44,16 @@ export function ShadowSelfRatingCard({ shadow, onSubmit, onClose }: ShadowSelfRa
 
   const shadowName = shadow.shadow_type === 'arrogance' ? '逆星' : '毒疮';
   const shadowDesc = shadow.shadow_type === 'arrogance' ? '高傲' : '自私';
+  const shadowEmoji = shadow.shadow_type === 'arrogance' ? '⚡' : '🕳️';
+  const availableTriggerTags = TRIGGER_TAG_OPTIONS;
+
+  const getPlaceholder = () => {
+    if (rating === 'skip') return '可有可无，随便记一笔今日为何无关。';
+    if (shadow.shadow_type === 'arrogance') {
+      return '例：今天开会时不由自主地反驳了同事的方案，语气很傲慢。意识到之后，我向他说了对不起。';
+    }
+    return '例：朋友找我帮忙时，我推掉了因为只想做自己的事。过后觉得自己不够体贴。';
+  };
 
   const toggleTag = (tag: string) => {
     setTriggerTags(prev =>
@@ -93,7 +104,7 @@ export function ShadowSelfRatingCard({ shadow, onSubmit, onClose }: ShadowSelfRa
 
         {/* HP Display */}
         <div className="mb-4 flex items-center gap-2">
-          <span className="text-2xl">🖤</span>
+          <span className="text-2xl">{shadowEmoji}</span>
           <span className="text-stone-300">{shadowName} HP：{shadow.current_hp}/{shadow.max_hp}</span>
         </div>
 
@@ -166,11 +177,7 @@ export function ShadowSelfRatingCard({ shadow, onSubmit, onClose }: ShadowSelfRa
               <textarea
                 value={behaviorRecord}
                 onChange={(e) => setBehaviorRecord(e.target.value)}
-                placeholder={
-                  rating === 'skip'
-                    ? '可有可无，随便记一笔今日为何无关。'
-                    : `例：今天开会时不由自主地反驳了同事的方案，语气很傲慢。意识到之后，我向他说了对不起。`
-                }
+                placeholder={getPlaceholder()}
                 className="w-full h-28 p-3 bg-stone-800 border border-stone-700 rounded-lg text-stone-200 placeholder-stone-500 resize-none focus:outline-none focus:border-amber-600 text-sm"
               />
             </div>
@@ -212,7 +219,7 @@ export function ShadowSelfRatingCard({ shadow, onSubmit, onClose }: ShadowSelfRa
                 是在什么情境下发生的？（可多选）
               </label>
               <div className="flex flex-wrap gap-1.5">
-                {TRIGGER_TAG_OPTIONS.map((tag) => (
+                {availableTriggerTags.map((tag) => (
                   <button
                     key={tag.value}
                     type="button"

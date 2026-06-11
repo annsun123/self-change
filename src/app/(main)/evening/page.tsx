@@ -20,6 +20,7 @@ import type { ShadowType, ScheduleTask } from "@/types/database";
 // Import round components
 import { NightTransition } from "./components/night-transition";
 import { ShadowRatingGate } from "./components/shadow-rating-gate";
+
 import { TeacherOpening } from "./components/teacher-opening";
 import { Round0Candlelight } from "./components/rounds/round-0-candlelight";
 import { Round1Flag } from "./components/rounds/round-1-flag";
@@ -663,37 +664,41 @@ export default function EveningPage() {
           />
         );
 
-      case "rating_check":
+      case "rating_check": {
+        // Check if there are unrecorded shadows for today
+        const recordedTypes = new Set(context.todayShadowRecords.map((r) => r.shadowType));
+        const unrecordedShadows = context.activeShadows.filter(
+          (s) => !recordedTypes.has(s.shadowType)
+        );
+
+        if (unrecordedShadows.length > 0) {
+          // Redirect to Shadow Hall for recording
+          return (
+            <div className="min-h-screen flex flex-col items-center justify-center p-8">
+              <div className="text-center space-y-6 max-w-lg">
+                <div className="text-6xl">🏯</div>
+                <p className="text-stone-300 leading-relaxed text-lg">
+                  今日战况尚未记录。请前往阴影阁，记录今日与阴影的交手。
+                </p>
+                <button
+                  onClick={() => router.replace("/shadow-hall?returnTo=/evening")}
+                  className="px-8 py-3 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-stone-100 font-medium transition-all"
+                >
+                  前往阴影阁 →
+                </button>
+              </div>
+            </div>
+          );
+        }
+
+        // All shadows recorded — show confirmation and proceed
         return (
           <ShadowRatingGate
             context={context}
             onComplete={() => dispatch({ type: "SET_PHASE", phase: "opening_choice" })}
-            onRatingSubmit={async (rating, behaviorRecord, shadowType, reflectionDepth, triggerTags, behaviorScore) => {
-              const { data: { user } } = await supabase.auth.getUser();
-              if (!user) return;
-
-              const getTeacherResponse = () => {
-                const teacher = shadowType === 'arrogance' ? '申先生' : '徐娘子';
-                if (rating === '+1') return '你觉察到了吗？这已经是改变的第一步了。';
-                if (rating === '-1') return '这一步太难了。你做到了。';
-                if (rating === 'breakthrough') return '恭喜你。但是——你觉得它真的离开了吗？';
-                return '';
-              };
-
-              await supabase.from("shadow_records").upsert({
-                user_id: user.id,
-                shadow_type: shadowType,
-                date: context.today,
-                self_rating: rating,
-                behavior_record: behaviorRecord,
-                teacher_response: getTeacherResponse(),
-                reflection_depth: reflectionDepth,
-                trigger_tags: triggerTags,
-                behavior_score: behaviorScore,
-              });
-            }}
           />
         );
+      }
 
       case "opening_choice":
         return (
